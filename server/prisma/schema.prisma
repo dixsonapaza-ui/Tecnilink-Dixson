@@ -1,0 +1,91 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  ADMIN
+  CLIENTE
+  TECNICO
+}
+
+enum RequestStatus {
+  PENDIENTE
+  EN_PROCESO
+  ATENDIDA
+  CANCELADA
+}
+
+enum RequestPriority {
+  BAJA
+  MEDIA
+  ALTA
+}
+
+model User {
+  id               String             @id @default(cuid())
+  name             String
+  email            String             @unique
+  password         String
+  role             Role               @default(CLIENTE)
+  isActive         Boolean            @default(true)
+  createdAt        DateTime           @default(now())
+  updatedAt        DateTime           @updatedAt
+  clientRequests   TechnicalRequest[] @relation("ClientRequests")
+  assignedRequests TechnicalRequest[] @relation("TechnicianRequests")
+  comments         RequestComment[]
+
+  @@index([email])
+  @@index([role])
+}
+
+model ServiceCategory {
+  id          String             @id @default(cuid())
+  name        String
+  description String
+  isActive    Boolean            @default(true)
+  createdAt   DateTime           @default(now())
+  updatedAt   DateTime           @updatedAt
+  requests    TechnicalRequest[]
+}
+
+model TechnicalRequest {
+  id           String           @id @default(cuid())
+  title        String
+  description  String
+  priority     RequestPriority  @default(MEDIA)
+  status       RequestStatus    @default(PENDIENTE)
+  clientId     String
+  technicianId String?
+  categoryId   String
+  createdAt    DateTime         @default(now())
+  updatedAt    DateTime         @updatedAt
+  client       User             @relation("ClientRequests", fields: [clientId], references: [id])
+  technician   User?            @relation("TechnicianRequests", fields: [technicianId], references: [id])
+  category     ServiceCategory  @relation(fields: [categoryId], references: [id])
+  comments     RequestComment[]
+
+  @@index([status])
+  @@index([priority])
+  @@index([clientId])
+  @@index([technicianId])
+  @@index([categoryId])
+  @@index([createdAt])
+}
+
+model RequestComment {
+  id        String           @id @default(cuid())
+  content   String
+  requestId String
+  authorId  String
+  createdAt DateTime         @default(now())
+  request   TechnicalRequest @relation(fields: [requestId], references: [id], onDelete: Cascade)
+  author    User             @relation(fields: [authorId], references: [id])
+
+  @@index([requestId])
+  @@index([authorId])
+}

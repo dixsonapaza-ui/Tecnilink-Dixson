@@ -1,0 +1,104 @@
+import axios from 'axios';
+
+export const AUTH_TOKEN_KEY = 'tecnilink_token';
+
+const api = axios.create({
+  baseURL: import.meta.env.VITE_API_URL || 'http://localhost:4000/api',
+});
+
+api.interceptors.request.use((config) => {
+  const token = localStorage.getItem(AUTH_TOKEN_KEY);
+
+  if (token) {
+    config.headers.Authorization = `Bearer ${token}`;
+  }
+
+  return config;
+});
+
+export const getHealthStatus = async () => {
+  const response = await api.get('/health');
+  return response.data;
+};
+
+export const registerUser = async (payload) => {
+  const response = await api.post('/auth/register', payload);
+  return response.data;
+};
+
+export const loginUser = async (payload) => {
+  const response = await api.post('/auth/login', payload);
+  return response.data;
+};
+
+export const getCurrentUser = async () => {
+  const response = await api.get('/auth/me');
+  return response.data;
+};
+
+export const getCategories = async (params = {}) => {
+  const response = await api.get('/categories', { params });
+  return response.data;
+};
+
+export const createCategory = async (payload) => {
+  const response = await api.post('/categories', payload);
+  return response.data;
+};
+
+export const updateCategory = async (categoryId, payload) => {
+  const response = await api.put(`/categories/${categoryId}`, payload);
+  return response.data;
+};
+
+export const deleteCategory = async (categoryId) => {
+  const response = await api.delete(`/categories/${categoryId}`);
+  return response.data;
+};
+
+export const getRequests = async (params = {}) => {
+  const response = await api.get('/requests', { params });
+  return response.data;
+};
+
+export const createRequest = async (payload) => {
+  const response = await api.post('/requests', payload);
+  return response.data;
+};
+
+export const getRequestById = async (requestId) => {
+  const response = await api.get(`/requests/${requestId}`);
+  return response.data;
+};
+
+export const updateRequest = async (requestId, payload) => {
+  const response = await api.put(`/requests/${requestId}`, payload);
+  return response.data;
+};
+
+export const assignRequest = async (requestId, payload) => {
+  const response = await api.patch(`/requests/${requestId}/assign`, payload);
+  return response.data;
+};
+
+export const updateRequestStatus = async (requestId, payload) => {
+  const response = await api.patch(`/requests/${requestId}/status`, payload);
+  return response.data;
+};
+
+export const cancelRequest = async (requestId) => {
+  const response = await api.delete(`/requests/${requestId}`);
+  return response.data;
+};
+
+export const getRequestComments = async (requestId, params = {}) => {
+  const response = await api.get(`/requests/${requestId}/comments`, { params });
+  return response.data;
+};
+
+export const createRequestComment = async (requestId, payload) => {
+  const response = await api.post(`/requests/${requestId}/comments`, payload);
+  return response.data;
+};
+
+export { api };
