@@ -4,9 +4,9 @@ import { check, sleep } from 'k6';
 // Configuración de la prueba de carga
 export const options = {
   stages: [
-    { duration: '10s', target: 20 }, // Rampa de subida a 20 usuarios en 10 segundos
-    { duration: '30s', target: 20 }, // Mantener 20 usuarios durante 30 segundos
-    { duration: '10s', target: 0 },  // Rampa de bajada a 0 usuarios
+    { duration: '10s', target: __ENV.VUS ? parseInt(__ENV.VUS) : 20 }, 
+    { duration: '30s', target: __ENV.VUS ? parseInt(__ENV.VUS) : 20 }, 
+    { duration: '10s', target: 0 },  
   ],
   thresholds: {
     http_req_duration: ['p(95)<500'], // El 95% de las peticiones deben ser menores a 500ms
