@@ -9,6 +9,7 @@ datasource db {
 }
 
 enum Role {
+  SUPER_ADMIN
   ADMIN
   CLIENTE
   TECNICO
@@ -39,6 +40,7 @@ model User {
   clientRequests   TechnicalRequest[] @relation("ClientRequests")
   assignedRequests TechnicalRequest[] @relation("TechnicianRequests")
   comments         RequestComment[]
+  auditLogs        AuditLog[]
 
   @@index([email])
   @@index([role])
@@ -89,4 +91,16 @@ model RequestComment {
 
   @@index([requestId])
   @@index([authorId])
+}
+
+model AuditLog {
+  id        String   @id @default(cuid())
+  action    String
+  details   String
+  userId    String?
+  createdAt DateTime @default(now())
+  user      User?    @relation(fields: [userId], references: [id])
+
+  @@index([action])
+  @@index([createdAt])
 }

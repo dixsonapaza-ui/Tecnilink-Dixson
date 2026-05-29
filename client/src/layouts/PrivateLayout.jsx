@@ -6,8 +6,11 @@ import {
   LayoutDashboard,
   LogOut,
   Menu,
+  PieChart,
   PlusCircle,
+  ShieldAlert,
   UserCircle,
+  Users,
 } from 'lucide-react';
 import { toast } from 'sonner';
 
@@ -38,8 +41,15 @@ export const PrivateLayout = () => {
     ...(user?.role === 'CLIENTE'
       ? [{ to: '/requests/new', label: 'Nueva solicitud', icon: PlusCircle }]
       : []),
-    ...(user?.role === 'ADMIN'
+    ...(user?.role === 'ADMIN' || user?.role === 'SUPER_ADMIN'
       ? [{ to: '/categories', label: 'Categorias', icon: FolderTree }]
+      : []),
+    ...(user?.role === 'SUPER_ADMIN'
+      ? [
+          { to: '/superadmin/metrics', label: 'Metricas Globales', icon: PieChart },
+          { to: '/superadmin/admins', label: 'Gestion Admins', icon: Users },
+          { to: '/superadmin/audit', label: 'Auditoria', icon: ShieldAlert },
+        ]
       : []),
   ];
 

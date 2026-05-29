@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom';
-import { ClipboardList, FolderTree, ShieldCheck, TicketCheck, UserCircle } from 'lucide-react';
+import { ClipboardList, FolderTree, ShieldAlert, ShieldCheck, TicketCheck, UserCircle } from 'lucide-react';
 
 import { PageHeader } from '../components/PageHeader.jsx';
 import { buttonVariants } from '../components/ui/button.jsx';
@@ -7,6 +7,17 @@ import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card.
 import { useAuth } from '../context/AuthContext.jsx';
 
 const roleContent = {
+  SUPER_ADMIN: {
+    title: 'Panel de Super Administrador',
+    description: 'Control total del sistema. Gestion de admins y metricas globales.',
+    icon: ShieldAlert,
+    actions: [
+      { label: 'Metricas', to: '/superadmin/metrics' },
+      { label: 'Admins', to: '/superadmin/admins' },
+      { label: 'Auditoria', to: '/superadmin/audit' },
+      { label: 'Categorias', to: '/categories' },
+    ],
+  },
   ADMIN: {
     title: 'Panel de administrador',
     description: 'Gestiona categorias, revisa todas las solicitudes y asigna tecnicos.',

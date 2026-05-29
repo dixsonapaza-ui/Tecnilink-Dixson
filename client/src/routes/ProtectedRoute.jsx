@@ -15,8 +15,15 @@ export const ProtectedRoute = ({ allowedRoles }) => {
     return <Navigate to="/login" replace state={{ from: location }} />;
   }
 
-  if (allowedRoles?.length > 0 && !allowedRoles.includes(user.role)) {
-    return <Navigate to="/unauthorized" replace />;
+  if (allowedRoles?.length > 0) {
+    const rolesToCheck = [...allowedRoles];
+    if (rolesToCheck.includes('ADMIN') && !rolesToCheck.includes('SUPER_ADMIN')) {
+      rolesToCheck.push('SUPER_ADMIN');
+    }
+
+    if (!rolesToCheck.includes(user.role)) {
+      return <Navigate to="/unauthorized" replace />;
+    }
   }
 
   return <Outlet />;

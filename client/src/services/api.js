@@ -101,4 +101,29 @@ export const createRequestComment = async (requestId, payload) => {
   return response.data;
 };
 
+export const getSuperAdminMetrics = async () => {
+  const response = await api.get('/superadmin/metrics');
+  return response.data;
+};
+
+export const getAdmins = async () => {
+  const response = await api.get('/superadmin/admins');
+  return response.data;
+};
+
+export const createAdmin = async (payload) => {
+  const response = await api.post('/superadmin/admins', payload);
+  return response.data;
+};
+
+export const deactivateAdmin = async (adminId) => {
+  const response = await api.patch(`/superadmin/admins/${adminId}/deactivate`);
+  return response.data;
+};
+
+export const getAuditLogs = async (params = {}) => {
+  const response = await api.get('/superadmin/audit', { params });
+  return response.data;
+};
+
 export { api };

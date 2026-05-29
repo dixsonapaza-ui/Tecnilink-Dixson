@@ -24,6 +24,7 @@ import {
   updateRequestStatus,
 } from '../services/api.js';
 import { getApiErrorMessage } from '../utils/api-error.js';
+import { sanitizeMultilineText, sanitizeText } from '../utils/input-sanitizer.js';
 
 export const RequestDetailPage = () => {
   const { id } = useParams();
@@ -73,8 +74,14 @@ export const RequestDetailPage = () => {
     event.preventDefault();
     setError('');
 
+    const sanitizedTechnicianId = sanitizeText(technicianId);
+    if (!sanitizedTechnicianId) {
+      setError('El ID del tecnico no puede estar vacio');
+      return;
+    }
+
     try {
-      await assignRequest(id, { technicianId });
+      await assignRequest(id, { technicianId: sanitizedTechnicianId });
       toast.success('Tecnico asignado');
       await loadRequest();
     } catch (apiError) {
@@ -117,8 +124,14 @@ export const RequestDetailPage = () => {
     event.preventDefault();
     setError('');
 
+    const sanitizedContent = sanitizeMultilineText(commentContent);
+    if (sanitizedContent.length < 2) {
+      setError('El comentario debe tener al menos 2 caracteres validos');
+      return;
+    }
+
     try {
-      await createRequestComment(id, { content: commentContent });
+      await createRequestComment(id, { content: sanitizedContent });
       setCommentContent('');
       toast.success('Comentario agregado');
       await loadComments(1);

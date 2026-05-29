@@ -1,6 +1,7 @@
 import { prisma } from '../config/prisma.js';
 import { AppError } from '../utils/app-error.js';
 import { buildPaginationMeta, getPagination } from '../utils/pagination.js';
+import { logAuditAction } from './audit.service.js';
 
 const userSummarySelect = {
   id: true,
@@ -111,7 +112,7 @@ export const createRequest = async (user, data) => {
 
   await ensureActiveCategory(data.categoryId);
 
-  return prisma.technicalRequest.create({
+  const request = await prisma.technicalRequest.create({
     data: {
       title: data.title,
       description: data.description,
@@ -121,6 +122,10 @@ export const createRequest = async (user, data) => {
     },
     include: requestInclude,
   });
+
+  logAuditAction('CREATE_REQUEST', `Request created: ${request.title}`, user.id);
+
+  return request;
 };
 
 export const getRequestById = async (user, requestId) => {
@@ -159,7 +164,7 @@ export const updateRequest = async (user, requestId, data) => {
   });
 };
 
-export const assignRequestTechnician = async (requestId, technicianId) => {
+export const assignRequestTechnician = async (user, requestId, technicianId) => {
   await ensureRequestExists(requestId);
 
   const technician = await prisma.user.findUnique({
@@ -171,11 +176,15 @@ export const assignRequestTechnician = async (requestId, technicianId) => {
     throw new AppError('Tecnico no encontrado o inactivo', 404);
   }
 
-  return prisma.technicalRequest.update({
+  const updatedRequest = await prisma.technicalRequest.update({
     where: { id: requestId },
     data: { technicianId },
     include: requestInclude,
   });
+
+  logAuditAction('ASSIGN_REQUEST', `Request ${requestId} assigned to technician ${technicianId}`, user.id);
+
+  return updatedRequest;
 };
 
 export const updateAssignedRequestStatus = async (user, requestId, status) => {
@@ -189,11 +198,15 @@ export const updateAssignedRequestStatus = async (user, requestId, status) => {
     throw new AppError('No se puede actualizar una solicitud cancelada', 409);
   }
 
-  return prisma.technicalRequest.update({
+  const updatedRequest = await prisma.technicalRequest.update({
     where: { id: requestId },
     data: { status },
     include: requestInclude,
   });
+
+  logAuditAction('STATUS_CHANGE', `Request ${requestId} status changed to ${status}`, user.id);
+
+  return updatedRequest;
 };
 
 export const cancelRequest = async (user, requestId) => {

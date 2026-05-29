@@ -11,6 +11,11 @@ import { Input } from '../components/ui/input.jsx';
 import { Textarea } from '../components/ui/textarea.jsx';
 import { createRequest, getCategories } from '../services/api.js';
 import { getApiErrorMessage } from '../utils/api-error.js';
+import {
+  createSafeChangeHandler,
+  sanitizeMultilineText,
+  sanitizeText,
+} from '../utils/input-sanitizer.js';
 
 const initialForm = {
   title: '',
@@ -45,20 +50,36 @@ export const CreateRequestPage = () => {
     loadCategories();
   }, []);
 
-  const handleChange = (event) => {
-    setForm((current) => ({
-      ...current,
-      [event.target.name]: event.target.value,
-    }));
-  };
+  const handleChange = createSafeChangeHandler(setForm);
 
   const handleSubmit = async (event) => {
     event.preventDefault();
     setError('');
     setIsSubmitting(true);
 
+    const sanitizedTitle = sanitizeText(form.title);
+    const sanitizedDescription = sanitizeMultilineText(form.description);
+
+    if (sanitizedTitle.length < 3) {
+      setError('El titulo debe tener al menos 3 caracteres validos');
+      setIsSubmitting(false);
+      return;
+    }
+
+    if (sanitizedDescription.length < 10) {
+      setError('La descripcion debe tener al menos 10 caracteres validos');
+      setIsSubmitting(false);
+      return;
+    }
+
+    const sanitizedForm = {
+      ...form,
+      title: sanitizedTitle,
+      description: sanitizedDescription,
+    };
+
     try {
-      const result = await createRequest(form);
+      const result = await createRequest(sanitizedForm);
       toast.success('Solicitud creada correctamente');
       navigate(`/requests/${result.request.id}`);
     } catch (apiError) {

@@ -4,7 +4,7 @@ import { env } from '../config/env.js';
 import { getActiveUserForAuth } from '../services/auth.service.js';
 import { AppError } from '../utils/app-error.js';
 
-const allowedRoles = ['ADMIN', 'CLIENTE', 'TECNICO'];
+const allowedRoles = ['SUPER_ADMIN', 'ADMIN', 'CLIENTE', 'TECNICO'];
 
 export const authenticateToken = (req, _res, next) => {
   const authHeader = req.headers.authorization;

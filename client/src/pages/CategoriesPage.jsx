@@ -27,6 +27,11 @@ import {
   updateCategory,
 } from '../services/api.js';
 import { getApiErrorMessage } from '../utils/api-error.js';
+import {
+  createSafeChangeHandler,
+  sanitizeMultilineText,
+  sanitizeText,
+} from '../utils/input-sanitizer.js';
 
 const initialForm = {
   name: '',
@@ -64,12 +69,7 @@ export const CategoriesPage = () => {
     loadCategories(1);
   }, []);
 
-  const handleChange = (event) => {
-    setForm((current) => ({
-      ...current,
-      [event.target.name]: event.target.value,
-    }));
-  };
+  const handleChange = createSafeChangeHandler(setForm);
 
   const resetForm = () => {
     setForm(initialForm);
@@ -90,13 +90,33 @@ export const CategoriesPage = () => {
     setSuccess('');
     setIsSubmitting(true);
 
+    const sanitizedName = sanitizeText(form.name);
+    const sanitizedDescription = sanitizeMultilineText(form.description);
+
+    if (sanitizedName.length < 2) {
+      setError('El nombre debe tener al menos 2 caracteres validos');
+      setIsSubmitting(false);
+      return;
+    }
+
+    if (sanitizedDescription.length < 5) {
+      setError('La descripcion debe tener al menos 5 caracteres validos');
+      setIsSubmitting(false);
+      return;
+    }
+
+    const sanitizedForm = {
+      name: sanitizedName,
+      description: sanitizedDescription,
+    };
+
     try {
       if (editingCategory) {
-        await updateCategory(editingCategory.id, form);
+        await updateCategory(editingCategory.id, sanitizedForm);
         setSuccess('Categoria actualizada correctamente.');
         toast.success('Categoria actualizada');
       } else {
-        await createCategory(form);
+        await createCategory(sanitizedForm);
         setSuccess('Categoria creada correctamente.');
         toast.success('Categoria creada');
       }

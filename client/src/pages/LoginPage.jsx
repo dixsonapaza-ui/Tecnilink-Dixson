@@ -10,6 +10,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../co
 import { Input } from '../components/ui/input.jsx';
 import { useAuth } from '../context/AuthContext.jsx';
 import { getApiErrorMessage } from '../utils/api-error.js';
+import { createSafeChangeHandler, sanitizeText } from '../utils/input-sanitizer.js';
 
 export const LoginPage = () => {
   const { isAuthenticated, login } = useAuth();
@@ -18,6 +19,7 @@ export const LoginPage = () => {
   const [form, setForm] = useState({ email: '', password: '' });
   const [error, setError] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isSpaceAttempted, setIsSpaceAttempted] = useState(false);
 
   if (isAuthenticated) {
     return <Navigate to="/dashboard" replace />;
@@ -25,11 +27,15 @@ export const LoginPage = () => {
 
   const from = location.state?.from?.pathname || '/dashboard';
 
-  const handleChange = (event) => {
-    setForm((current) => ({
-      ...current,
-      [event.target.name]: event.target.value,
-    }));
+  const handleChange = createSafeChangeHandler(setForm);
+
+  const handlePasswordChange = (event) => {
+    if (event.target.value.includes(' ')) {
+      setIsSpaceAttempted(true);
+      setTimeout(() => setIsSpaceAttempted(false), 2500);
+      return;
+    }
+    handleChange(event);
   };
 
   const handleSubmit = async (event) => {
@@ -37,8 +43,13 @@ export const LoginPage = () => {
     setError('');
     setIsSubmitting(true);
 
+    const sanitizedForm = {
+      email: sanitizeText(form.email).toLowerCase(),
+      password: form.password,
+    };
+
     try {
-      await login(form);
+      await login(sanitizedForm);
       toast.success('Sesion iniciada');
       navigate(from, { replace: true });
     } catch (apiError) {
@@ -81,11 +92,11 @@ export const LoginPage = () => {
         <label className="mt-4 block text-sm font-medium text-slate-700">
           Contrasena
           <Input
-            className="mt-2"
+            className={`mt-2 transition-colors duration-300 ${isSpaceAttempted ? '!border-red-500 bg-red-50 ring-2 ring-red-500/20' : ''}`}
             name="password"
             type="password"
             value={form.password}
-            onChange={handleChange}
+            onChange={handlePasswordChange}
             required
           />
         </label>

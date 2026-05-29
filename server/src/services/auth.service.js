@@ -4,6 +4,7 @@ import jwt from 'jsonwebtoken';
 import { prisma } from '../config/prisma.js';
 import { env } from '../config/env.js';
 import { AppError } from '../utils/app-error.js';
+import { logAuditAction } from './audit.service.js';
 
 const publicUserSelect = {
   id: true,
@@ -78,6 +79,8 @@ export const loginUser = async ({ email, password }) => {
 
   const token = signToken(user);
   const { password: _password, ...safeUser } = user;
+
+  logAuditAction('LOGIN', `User ${user.email} logged in`, user.id);
 
   return {
     token,

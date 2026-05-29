@@ -4,7 +4,8 @@ import { AppError } from '../utils/app-error.js';
 import { sanitizeObject } from '../utils/sanitize.js';
 
 export const notFoundMiddleware = (req, _res, next) => {
-  next(new AppError(`Ruta no encontrada: ${req.originalUrl}`, 404));
+  const safeUrl = req.originalUrl.replace(/[<>"']/g, '');
+  next(new AppError(`Ruta no encontrada: ${safeUrl}`, 404));
 };
 
 const getStatusCode = (error) => {

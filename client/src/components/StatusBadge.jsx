@@ -8,6 +8,8 @@ const variantByValue = {
   ALTA: 'high',
   MEDIA: 'medium',
   BAJA: 'low',
+  ACTIVO: 'done',
+  INACTIVO: 'canceled',
 };
 
 export const StatusBadge = ({ value }) => <Badge variant={variantByValue[value] || 'outline'}>{value}</Badge>;

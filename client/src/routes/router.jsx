@@ -13,6 +13,9 @@ import { RegisterPage } from '../pages/RegisterPage.jsx';
 import { RequestDetailPage } from '../pages/RequestDetailPage.jsx';
 import { RequestsPage } from '../pages/RequestsPage.jsx';
 import { ServerErrorPage } from '../pages/ServerErrorPage.jsx';
+import { SuperAdminAdminsPage } from '../pages/SuperAdminAdminsPage.jsx';
+import { SuperAdminAuditPage } from '../pages/SuperAdminAuditPage.jsx';
+import { SuperAdminMetricsPage } from '../pages/SuperAdminMetricsPage.jsx';
 import { UnauthorizedPage } from '../pages/UnauthorizedPage.jsx';
 
 export const router = createBrowserRouter([
@@ -67,6 +70,23 @@ export const router = createBrowserRouter([
               {
                 path: '/categories',
                 element: <CategoriesPage />,
+              },
+            ],
+          },
+          {
+            element: <ProtectedRoute allowedRoles={['SUPER_ADMIN']} />,
+            children: [
+              {
+                path: '/superadmin/admins',
+                element: <SuperAdminAdminsPage />,
+              },
+              {
+                path: '/superadmin/metrics',
+                element: <SuperAdminMetricsPage />,
+              },
+              {
+                path: '/superadmin/audit',
+                element: <SuperAdminAuditPage />,
               },
             ],
           },

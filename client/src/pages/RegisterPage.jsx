@@ -9,6 +9,13 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../co
 import { Input } from '../components/ui/input.jsx';
 import { useAuth } from '../context/AuthContext.jsx';
 import { getApiErrorMessage } from '../utils/api-error.js';
+import {
+  createSafeChangeHandler,
+  sanitizeText,
+  validateEmail,
+  validateName,
+  validatePassword,
+} from '../utils/input-sanitizer.js';
 
 export const RegisterPage = () => {
   const { isAuthenticated, register } = useAuth();
@@ -16,16 +23,21 @@ export const RegisterPage = () => {
   const [form, setForm] = useState({ name: '', email: '', password: '' });
   const [error, setError] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isSpaceAttempted, setIsSpaceAttempted] = useState(false);
 
   if (isAuthenticated) {
     return <Navigate to="/dashboard" replace />;
   }
 
-  const handleChange = (event) => {
-    setForm((current) => ({
-      ...current,
-      [event.target.name]: event.target.value,
-    }));
+  const handleChange = createSafeChangeHandler(setForm);
+
+  const handlePasswordChange = (event) => {
+    if (event.target.value.includes(' ')) {
+      setIsSpaceAttempted(true);
+      setTimeout(() => setIsSpaceAttempted(false), 2500);
+      return;
+    }
+    handleChange(event);
   };
 
   const handleSubmit = async (event) => {
@@ -33,8 +45,25 @@ export const RegisterPage = () => {
     setError('');
     setIsSubmitting(true);
 
+    const nameError = validateName(form.name);
+    const emailError = validateEmail(form.email);
+    const passwordErrors = validatePassword(form.password);
+
+    if (nameError || emailError || passwordErrors.length > 0) {
+      const messages = [nameError, emailError, ...passwordErrors].filter(Boolean);
+      setError(messages.join('. '));
+      setIsSubmitting(false);
+      return;
+    }
+
+    const sanitizedForm = {
+      name: sanitizeText(form.name),
+      email: sanitizeText(form.email).toLowerCase(),
+      password: form.password,
+    };
+
     try {
-      await register(form);
+      await register(sanitizedForm);
       toast.success('Cuenta creada');
       navigate('/login', {
         replace: true,
@@ -83,12 +112,12 @@ export const RegisterPage = () => {
         <label className="mt-4 block text-sm font-medium text-slate-700">
           Contrasena
           <Input
-            className="mt-2"
+            className={`mt-2 transition-colors duration-300 ${isSpaceAttempted ? '!border-red-500 bg-red-50 ring-2 ring-red-500/20' : ''}`}
             name="password"
             type="password"
             minLength={8}
             value={form.password}
-            onChange={handleChange}
+            onChange={handlePasswordChange}
             required
           />
         </label>

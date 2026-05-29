@@ -18,6 +18,15 @@ const main = async () => {
 
   const password = await bcrypt.hash(seedPassword, passwordSaltRounds);
 
+  const superAdmin = await prisma.user.create({
+    data: {
+      name: 'Super Admin',
+      email: 'superadmin@tecnilink.test',
+      password,
+      role: 'SUPER_ADMIN',
+    },
+  });
+
   const admin = await prisma.user.create({
     data: {
       name: 'Admin Tecnilink',

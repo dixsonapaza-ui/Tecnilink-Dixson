@@ -43,7 +43,7 @@ export const editRequest = async (req, res) => {
 };
 
 export const assignRequest = async (req, res) => {
-  const request = await assignRequestTechnician(req.params.id, req.body.technicianId);
+  const request = await assignRequestTechnician(req.user, req.params.id, req.body.technicianId);
 
   res.status(200).json({
     message: 'Tecnico asignado correctamente',
