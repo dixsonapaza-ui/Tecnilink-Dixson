@@ -30,6 +30,7 @@ export const CreateRequestPage = () => {
   const [form, setForm] = useState(initialForm);
   const [error, setError] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isSymbolAttempted, setIsSymbolAttempted] = useState(false);
 
   useEffect(() => {
     const loadCategories = async () => {
@@ -51,6 +52,16 @@ export const CreateRequestPage = () => {
   }, []);
 
   const handleChange = createSafeChangeHandler(setForm);
+
+  const handleTitleChange = (event) => {
+    const regex = /^[a-zA-Z0-9\sáéíóúÁÉÍÓÚñÑüÜ]*$/;
+    if (!regex.test(event.target.value)) {
+      setIsSymbolAttempted(true);
+      setTimeout(() => setIsSymbolAttempted(false), 2500);
+      return;
+    }
+    handleChange(event);
+  };
 
   const handleSubmit = async (event) => {
     event.preventDefault();
@@ -104,12 +115,15 @@ export const CreateRequestPage = () => {
         <label className="mt-5 block text-sm font-medium text-slate-700">
           Titulo
           <Input
-            className="mt-2"
+            className={`mt-2 transition-colors duration-300 ${isSymbolAttempted ? '!border-red-500 bg-red-50 ring-2 ring-red-500/20' : ''}`}
             name="title"
             value={form.title}
-            onChange={handleChange}
+            onChange={handleTitleChange}
             required
           />
+          {isSymbolAttempted && (
+            <p className="mt-1 text-xs font-normal text-red-500">Solo se permiten letras y numeros.</p>
+          )}
         </label>
         <label className="mt-4 block text-sm font-medium text-slate-700">
           Descripcion
