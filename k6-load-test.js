@@ -14,7 +14,7 @@ export const options = {
   },
 };
 
-const BASE_URL = 'http://localhost:4000/api';
+const BASE_URL = 'https://tecnilink-backend.onrender.com/api';
 
 export default function () {
   // 1. Prueba de Salud (Endpoint público sin autenticación)
