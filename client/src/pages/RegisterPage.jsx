@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Link, Navigate, useNavigate } from 'react-router-dom';
 import { Eye, EyeOff, UserPlus, Mail, Lock, User, Zap } from 'lucide-react';
 import { toast } from 'sonner';
@@ -8,7 +8,9 @@ import { ErrorMessage } from '../components/ErrorMessage.jsx';
 import { Input } from '../components/ui/input.jsx';
 import { NetworkBackground } from '../components/NetworkBackground.jsx';
 import { useAuth } from '../context/AuthContext.jsx';
+import { GoogleAuthModal } from '../components/GoogleAuthModal.jsx';
 import { getApiErrorMessage } from '../utils/api-error.js';
+import { GoogleLogin } from '@react-oauth/google';
 import {
   createSafeChangeHandler,
   sanitizeText,
@@ -47,13 +49,44 @@ const cardVariants = {
 
 /* ── component ── */
 export const RegisterPage = () => {
-  const { isAuthenticated, register } = useAuth();
+  const { isAuthenticated, register, loginGoogle } = useAuth();
   const navigate = useNavigate();
   const [form, setForm] = useState({ name: '', email: '', password: '' });
   const [error, setError] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSpaceAttempted, setIsSpaceAttempted] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+  const [isGoogleModalOpen, setIsGoogleModalOpen] = useState(false);
+
+  const handleGoogleAuthenticate = async (credential) => {
+    setError('');
+    try {
+      await loginGoogle({ credential });
+      toast.success('Sesion iniciada con Google');
+      navigate('/dashboard', { replace: true });
+    } catch (apiError) {
+      const message = getApiErrorMessage(apiError, 'No se pudo registrar/iniciar sesion con Google.');
+      setError(message);
+      toast.error(message);
+    }
+  };
+
+  const handleMockGoogleAuthenticate = async ({ name, email }) => {
+    // Construct a mock JWT credential token that ends with .mock-signature for development mode
+    const payloadObj = {
+      name,
+      email,
+      email_verified: true,
+      sub: 'mock-' + email.replace(/[^a-zA-Z0-9]/g, ''),
+      picture: `https://api.dicebear.com/7.x/adventurer/svg?seed=${encodeURIComponent(name)}`,
+    };
+    const header = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9';
+    const payload = window.btoa(unescape(encodeURIComponent(JSON.stringify(payloadObj))));
+    const signature = 'mock-signature';
+    const fakeCredential = `${header}.${payload}.${signature}`;
+
+    await handleGoogleAuthenticate(fakeCredential);
+  };
 
   const hasMinLength = form.password.length >= 8;
   const hasLowerCase = /[a-z]/.test(form.password);
@@ -335,6 +368,28 @@ export const RegisterPage = () => {
                 <div className="h-px flex-1 bg-slate-200" />
               </motion.div>
 
+              {/* Google Button */}
+              <motion.div variants={itemVariants} className="mt-2 mb-6 flex flex-col items-center gap-3">
+                <div className="w-full flex justify-center">
+                  <GoogleLogin
+                    onSuccess={(response) => handleGoogleAuthenticate(response.credential)}
+                    onError={() => toast.error('Error al iniciar sesión con Google')}
+                    theme="outline"
+                    size="large"
+                    text="continue_with"
+                    shape="pill"
+                    width="380"
+                  />
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setIsGoogleModalOpen(true)}
+                  className="text-xs text-slate-400 hover:text-slate-600 transition-colors underline"
+                >
+                  ¿Problemas con Google? Usar simulador local
+                </button>
+              </motion.div>
+
               {/* Login Link */}
               <motion.p
                 variants={itemVariants}
@@ -360,6 +415,12 @@ export const RegisterPage = () => {
           transition={{ delay: 1, duration: 0.6, ease: 'easeOut' }}
         />
       </motion.div>
+
+      <GoogleAuthModal
+        isOpen={isGoogleModalOpen}
+        onClose={() => setIsGoogleModalOpen(false)}
+        onAuthenticate={handleMockGoogleAuthenticate}
+      />
     </section>
   );
 };

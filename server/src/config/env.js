@@ -54,6 +54,7 @@ const envSchema = z.object({
   RATE_LIMIT_WINDOW_MS: numberFromEnv(900000),
   RATE_LIMIT_MAX: numberFromEnv(300),
   ENABLE_REQUEST_LOGS: booleanFromEnv(true),
+  GOOGLE_CLIENT_ID: z.string().trim().min(1, 'GOOGLE_CLIENT_ID es obligatorio'),
 });
 
 const parsedEnv = envSchema.safeParse(process.env);
@@ -81,4 +82,5 @@ export const env = {
   rateLimitWindowMs: validatedEnv.RATE_LIMIT_WINDOW_MS,
   rateLimitMax: validatedEnv.RATE_LIMIT_MAX,
   enableRequestLogs: validatedEnv.ENABLE_REQUEST_LOGS,
+  googleClientId: validatedEnv.GOOGLE_CLIENT_ID,
 };

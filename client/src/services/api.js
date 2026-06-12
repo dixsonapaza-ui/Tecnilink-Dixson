@@ -16,6 +16,17 @@ api.interceptors.request.use((config) => {
   return config;
 });
 
+api.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    // Si no hay respuesta de red (servidor caído) o es un error 500
+    if (!error.response || error.response.status === 500) {
+      window.location.href = '/server-error';
+    }
+    return Promise.reject(error);
+  }
+);
+
 export const getHealthStatus = async () => {
   const response = await api.get('/health');
   return response.data;
@@ -33,6 +44,11 @@ export const loginUser = async (payload) => {
 
 export const getCurrentUser = async () => {
   const response = await api.get('/auth/me');
+  return response.data;
+};
+
+export const loginWithGoogle = async (payload) => {
+  const response = await api.post('/auth/google', payload);
   return response.data;
 };
 

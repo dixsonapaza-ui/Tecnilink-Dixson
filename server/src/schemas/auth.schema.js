@@ -81,3 +81,9 @@ export const loginSchema = z.object({
     ),
   }),
 });
+
+export const googleAuthSchema = z.object({
+  body: z.object({
+    credential: z.string().trim().min(1, 'El token de Google es obligatorio'),
+  }),
+});

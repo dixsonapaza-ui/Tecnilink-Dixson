@@ -1,0 +1,407 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tecnilink - Encuentra expertos para tu hogar</title>
+    <meta name="description" content="Conecta con carpinteros, electricistas y gasfiteros verificados. Soporte técnico a domicilio rápido y seguro.">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body class="antialiased">
+
+    <!-- Particle Canvas Background -->
+    <canvas id="particleCanvas"></canvas>
+
+    <!-- Header -->
+    <header id="mainHeader">
+        <div class="container header-inner">
+            <div class="logo">
+                <div class="logo-icon">
+                    <i data-lucide="activity"></i>
+                </div>
+                <span class="logo-text">Tecnilink</span>
+            </div>
+            <nav class="nav-links">
+                <a href="#servicios">Servicios</a>
+                <a href="#como-funciona">Cómo funciona</a>
+                <a href="#testimonios">Testimonios</a>
+                <a href="#contacto">Contacto</a>
+            </nav>
+            <div class="header-actions">
+                <a href="#" class="nav-link-secondary">
+                    <i data-lucide="hard-hat" style="width:16px;height:16px"></i> Soy Técnico
+                </a>
+                <a href="#" class="nav-link-secondary">
+                    <i data-lucide="log-in" style="width:16px;height:16px"></i> Iniciar sesión
+                </a>
+                <a href="#" class="btn btn-primary btn-sm">Registrarse</a>
+            </div>
+            <button class="mobile-menu-btn" id="mobileMenuBtn">
+                <i data-lucide="menu"></i>
+            </button>
+        </div>
+        <!-- Mobile Menu -->
+        <div class="mobile-menu" id="mobileMenu">
+            <a href="#servicios">Servicios</a>
+            <a href="#como-funciona">Cómo funciona</a>
+            <a href="#testimonios">Testimonios</a>
+            <a href="#contacto">Contacto</a>
+            <a href="#">Soy Técnico</a>
+            <a href="#">Iniciar sesión</a>
+            <a href="#" class="btn btn-primary" style="text-align:center">Registrarse</a>
+        </div>
+    </header>
+
+    <!-- Hero Section -->
+    <section class="hero" id="hero">
+        <div class="container hero-grid">
+            <div class="hero-content reveal-up">
+                <div class="badge animate-pulse-slow">
+                    <span class="badge-dot"></span>
+                    Soporte técnico a domicilio
+                </div>
+                <h1 class="hero-title">
+                    El experto que necesitas,
+                    <span class="gradient-text">a un clic de distancia.</span>
+                </h1>
+                <p class="hero-description">
+                    Gestiona solicitudes técnicas de manera rápida y segura. Conecta con
+                    <strong>carpinteros, electricistas y gasfiteros</strong> verificados y listos para solucionar tus problemas.
+                </p>
+                <div class="hero-buttons">
+                    <a href="#" class="btn btn-primary btn-lg">
+                        Solicitar un servicio <i data-lucide="arrow-right" style="width:18px;height:18px"></i>
+                    </a>
+                    <a href="#" class="btn btn-outline btn-lg">
+                        Ofrecer mis servicios
+                    </a>
+                </div>
+                <div class="trust-badges">
+                    <div class="trust-badge">
+                        <i data-lucide="shield-check" style="width:16px;height:16px"></i> Profesionales verificados
+                    </div>
+                    <div class="trust-badge">
+                        <i data-lucide="git-merge" style="width:16px;height:16px"></i> Flujo trazable
+                    </div>
+                    <div class="trust-badge">
+                        <i data-lucide="zap" style="width:16px;height:16px"></i> Atención rápida
+                    </div>
+                </div>
+            </div>
+
+            <div class="hero-visual reveal-up" style="animation-delay: 0.2s">
+                <div class="service-card card-3d" id="serviceCard">
+                    <div class="service-card-header">
+                        <h3>Servicios Disponibles</h3>
+                        <div class="live-indicator">
+                            <span class="live-dot"></span> En vivo
+                        </div>
+                    </div>
+                    <div class="service-list">
+                        <div class="service-item" style="animation-delay: 0.3s">
+                            <div class="service-item-left">
+                                <div class="service-icon electric"><i data-lucide="plug-zap"></i></div>
+                                <div>
+                                    <p class="service-name">Electricistas</p>
+                                    <p class="service-desc">Instalaciones y reparaciones</p>
+                                </div>
+                            </div>
+                            <div class="available-badge"><span class="avail-dot"></span> Disponibles</div>
+                        </div>
+                        <div class="service-item" style="animation-delay: 0.5s">
+                            <div class="service-item-left">
+                                <div class="service-icon plumber"><i data-lucide="droplet"></i></div>
+                                <div>
+                                    <p class="service-name">Gasfiteros</p>
+                                    <p class="service-desc">Fugas, tuberías y desagües</p>
+                                </div>
+                            </div>
+                            <div class="available-badge"><span class="avail-dot"></span> Disponibles</div>
+                        </div>
+                        <div class="service-item" style="animation-delay: 0.7s">
+                            <div class="service-item-left">
+                                <div class="service-icon carpenter"><i data-lucide="hammer"></i></div>
+                                <div>
+                                    <p class="service-name">Carpinteros</p>
+                                    <p class="service-desc">Muebles y estructuras a medida</p>
+                                </div>
+                            </div>
+                            <div class="available-badge"><span class="avail-dot"></span> Disponibles</div>
+                        </div>
+                    </div>
+                </div>
+                <!-- Floating decorative elements -->
+                <div class="floating-element float-1"><i data-lucide="wrench" style="width:24px;height:24px"></i></div>
+                <div class="floating-element float-2"><i data-lucide="settings" style="width:20px;height:20px"></i></div>
+                <div class="floating-element float-3"><i data-lucide="home" style="width:22px;height:22px"></i></div>
+                <div class="dashed-border"></div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Stats Section -->
+    <section class="stats-section">
+        <div class="container">
+            <div class="stats-grid">
+                <div class="stat-item reveal-up">
+                    <span class="stat-number" data-target="500">0</span><span class="stat-plus">+</span>
+                    <p class="stat-label">Técnicos verificados</p>
+                </div>
+                <div class="stat-divider"></div>
+                <div class="stat-item reveal-up" style="animation-delay:0.1s">
+                    <span class="stat-number" data-target="2500">0</span><span class="stat-plus">+</span>
+                    <p class="stat-label">Servicios completados</p>
+                </div>
+                <div class="stat-divider"></div>
+                <div class="stat-item reveal-up" style="animation-delay:0.2s">
+                    <span class="stat-number" data-target="98">0</span><span class="stat-plus">%</span>
+                    <p class="stat-label">Clientes satisfechos</p>
+                </div>
+                <div class="stat-divider"></div>
+                <div class="stat-item reveal-up" style="animation-delay:0.3s">
+                    <span class="stat-number" data-target="15">0</span><span class="stat-plus">min</span>
+                    <p class="stat-label">Tiempo promedio de respuesta</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Services Section -->
+    <section class="services-section" id="servicios">
+        <div class="container">
+            <div class="section-header reveal-up">
+                <div class="badge badge-center"><i data-lucide="briefcase" style="width:14px;height:14px"></i> Nuestros Servicios</div>
+                <h2 class="section-title">Todo lo que tu hogar necesita, <span class="gradient-text">en un solo lugar</span></h2>
+                <p class="section-subtitle">Profesionales capacitados para cada tipo de trabajo en tu hogar u oficina.</p>
+            </div>
+            <div class="services-grid">
+                <div class="service-card-big card-3d reveal-up">
+                    <div class="service-card-big-icon electric-bg">
+                        <i data-lucide="plug-zap"></i>
+                    </div>
+                    <h3>Electricistas</h3>
+                    <p>Instalaciones eléctricas, reparación de cortocircuitos, cableado estructurado y mantenimiento preventivo.</p>
+                    <ul class="service-features">
+                        <li><i data-lucide="check-circle" style="width:16px;height:16px"></i> Certificados</li>
+                        <li><i data-lucide="check-circle" style="width:16px;height:16px"></i> Herramientas propias</li>
+                        <li><i data-lucide="check-circle" style="width:16px;height:16px"></i> Garantía de trabajo</li>
+                    </ul>
+                    <a href="#" class="btn btn-outline btn-sm">Solicitar <i data-lucide="arrow-right" style="width:14px;height:14px"></i></a>
+                </div>
+                <div class="service-card-big card-3d reveal-up" style="animation-delay:0.15s">
+                    <div class="service-card-big-icon plumber-bg">
+                        <i data-lucide="droplet"></i>
+                    </div>
+                    <h3>Gasfiteros</h3>
+                    <p>Reparación de fugas, instalación de tuberías, mantenimiento de desagües y sistemas de agua caliente.</p>
+                    <ul class="service-features">
+                        <li><i data-lucide="check-circle" style="width:16px;height:16px"></i> Respuesta rápida</li>
+                        <li><i data-lucide="check-circle" style="width:16px;height:16px"></i> Materiales de calidad</li>
+                        <li><i data-lucide="check-circle" style="width:16px;height:16px"></i> Presupuesto previo</li>
+                    </ul>
+                    <a href="#" class="btn btn-outline btn-sm">Solicitar <i data-lucide="arrow-right" style="width:14px;height:14px"></i></a>
+                </div>
+                <div class="service-card-big card-3d reveal-up" style="animation-delay:0.3s">
+                    <div class="service-card-big-icon carpenter-bg">
+                        <i data-lucide="hammer"></i>
+                    </div>
+                    <h3>Carpinteros</h3>
+                    <p>Muebles a medida, reparación de puertas, instalación de closets y todo tipo de estructuras de madera.</p>
+                    <ul class="service-features">
+                        <li><i data-lucide="check-circle" style="width:16px;height:16px"></i> Diseño personalizado</li>
+                        <li><i data-lucide="check-circle" style="width:16px;height:16px"></i> Madera de calidad</li>
+                        <li><i data-lucide="check-circle" style="width:16px;height:16px"></i> Entrega puntual</li>
+                    </ul>
+                    <a href="#" class="btn btn-outline btn-sm">Solicitar <i data-lucide="arrow-right" style="width:14px;height:14px"></i></a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- How It Works -->
+    <section class="how-section" id="como-funciona">
+        <div class="container">
+            <div class="section-header reveal-up">
+                <div class="badge badge-center"><i data-lucide="layers" style="width:14px;height:14px"></i> Proceso Simple</div>
+                <h2 class="section-title">¿Cómo funciona <span class="gradient-text">Tecnilink</span>?</h2>
+                <p class="section-subtitle">En solo 3 pasos tendrás a un profesional en tu puerta.</p>
+            </div>
+            <div class="steps-grid">
+                <div class="step-card reveal-up">
+                    <div class="step-number">01</div>
+                    <div class="step-icon-wrap"><i data-lucide="search"></i></div>
+                    <h3>Describe tu problema</h3>
+                    <p>Cuéntanos qué necesitas reparar o instalar. Adjunta fotos si es necesario.</p>
+                    <div class="step-connector"></div>
+                </div>
+                <div class="step-card reveal-up" style="animation-delay:0.15s">
+                    <div class="step-number">02</div>
+                    <div class="step-icon-wrap"><i data-lucide="users"></i></div>
+                    <h3>Conecta con expertos</h3>
+                    <p>Te asignamos al técnico más cercano y mejor calificado para tu necesidad.</p>
+                    <div class="step-connector"></div>
+                </div>
+                <div class="step-card reveal-up" style="animation-delay:0.3s">
+                    <div class="step-number">03</div>
+                    <div class="step-icon-wrap"><i data-lucide="check-circle"></i></div>
+                    <h3>Problema resuelto</h3>
+                    <p>El técnico llega, soluciona y tú calificas el servicio. ¡Así de fácil!</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Image Showcase -->
+    <section class="showcase-section">
+        <div class="container">
+            <div class="showcase-grid reveal-up">
+                <div class="showcase-image">
+                    <img src="assets/services-illustration.png" alt="Servicios de Tecnilink" loading="lazy">
+                </div>
+                <div class="showcase-content">
+                    <div class="badge"><i data-lucide="sparkles" style="width:14px;height:14px"></i> ¿Por qué elegirnos?</div>
+                    <h2 class="section-title" style="text-align:left">La plataforma que <span class="gradient-text">revoluciona</span> el soporte técnico</h2>
+                    <p class="showcase-text">Tecnilink no es solo una app de servicios. Es una plataforma integral que garantiza calidad, seguridad y trazabilidad en cada solicitud.</p>
+                    <div class="feature-list">
+                        <div class="feature-item">
+                            <div class="feature-icon"><i data-lucide="shield" style="width:20px;height:20px"></i></div>
+                            <div>
+                                <h4>Técnicos verificados</h4>
+                                <p>Cada profesional pasa por un riguroso proceso de verificación.</p>
+                            </div>
+                        </div>
+                        <div class="feature-item">
+                            <div class="feature-icon"><i data-lucide="clock" style="width:20px;height:20px"></i></div>
+                            <div>
+                                <h4>Seguimiento en tiempo real</h4>
+                                <p>Conoce el estado de tu solicitud en cada momento.</p>
+                            </div>
+                        </div>
+                        <div class="feature-item">
+                            <div class="feature-icon"><i data-lucide="star" style="width:20px;height:20px"></i></div>
+                            <div>
+                                <h4>Sistema de calificaciones</h4>
+                                <p>Califica y revisa opiniones antes de contratar.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Testimonials -->
+    <section class="testimonials-section" id="testimonios">
+        <div class="container">
+            <div class="section-header reveal-up">
+                <div class="badge badge-center"><i data-lucide="message-circle" style="width:14px;height:14px"></i> Testimonios</div>
+                <h2 class="section-title">Lo que dicen nuestros <span class="gradient-text">clientes</span></h2>
+            </div>
+            <div class="testimonials-grid">
+                <div class="testimonial-card card-3d reveal-up">
+                    <div class="stars">★★★★★</div>
+                    <p>"El electricista llegó en menos de 20 minutos. Resolvió el problema rápido y dejó todo limpio. ¡Excelente servicio!"</p>
+                    <div class="testimonial-author">
+                        <div class="author-avatar" style="background: linear-gradient(135deg, #fbbf24, #f59e0b)">MR</div>
+                        <div>
+                            <strong>María Rodríguez</strong>
+                            <span>Lima, Perú</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="testimonial-card card-3d reveal-up" style="animation-delay:0.15s">
+                    <div class="stars">★★★★★</div>
+                    <p>"Necesitaba un carpintero urgente para un closet. La plataforma me conectó con un profesional increíble en minutos."</p>
+                    <div class="testimonial-author">
+                        <div class="author-avatar" style="background: linear-gradient(135deg, #3b82f6, #1d4ed8)">CP</div>
+                        <div>
+                            <strong>Carlos Paredes</strong>
+                            <span>Arequipa, Perú</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="testimonial-card card-3d reveal-up" style="animation-delay:0.3s">
+                    <div class="stars">★★★★★</div>
+                    <p>"Como gasfitero, Tecnilink me ha permitido conseguir más clientes y organizar mejor mi trabajo. La recomiendo."</p>
+                    <div class="testimonial-author">
+                        <div class="author-avatar" style="background: linear-gradient(135deg, #10b981, #059669)">LT</div>
+                        <div>
+                            <strong>Luis Torres</strong>
+                            <span>Cusco, Perú</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- CTA Section -->
+    <section class="cta-section" id="contacto">
+        <div class="container">
+            <div class="cta-card reveal-up">
+                <div class="cta-bg-pattern"></div>
+                <h2>¿Listo para resolver tus problemas del hogar?</h2>
+                <p>Únete a miles de personas que ya confían en Tecnilink para mantener su hogar en perfectas condiciones.</p>
+                <div class="cta-buttons">
+                    <a href="#" class="btn btn-white btn-lg">
+                        <i data-lucide="rocket" style="width:18px;height:18px"></i> Comenzar ahora
+                    </a>
+                    <a href="#" class="btn btn-ghost btn-lg">
+                        <i data-lucide="phone" style="width:18px;height:18px"></i> Contáctanos
+                    </a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-grid">
+                <div class="footer-brand">
+                    <div class="logo">
+                        <div class="logo-icon"><i data-lucide="activity"></i></div>
+                        <span class="logo-text">Tecnilink</span>
+                    </div>
+                    <p>La plataforma que conecta hogares con profesionales de confianza para todo tipo de soporte técnico.</p>
+                    <div class="social-links">
+                        <a href="#"><i data-lucide="facebook" style="width:18px;height:18px"></i></a>
+                        <a href="#"><i data-lucide="instagram" style="width:18px;height:18px"></i></a>
+                        <a href="#"><i data-lucide="twitter" style="width:18px;height:18px"></i></a>
+                        <a href="#"><i data-lucide="linkedin" style="width:18px;height:18px"></i></a>
+                    </div>
+                </div>
+                <div class="footer-links">
+                    <h4>Servicios</h4>
+                    <a href="#">Electricistas</a>
+                    <a href="#">Gasfiteros</a>
+                    <a href="#">Carpinteros</a>
+                    <a href="#">Pintores</a>
+                </div>
+                <div class="footer-links">
+                    <h4>Empresa</h4>
+                    <a href="#">Sobre nosotros</a>
+                    <a href="#">Blog</a>
+                    <a href="#">Carreras</a>
+                    <a href="#">Prensa</a>
+                </div>
+                <div class="footer-links">
+                    <h4>Soporte</h4>
+                    <a href="#">Centro de ayuda</a>
+                    <a href="#">Términos</a>
+                    <a href="#">Privacidad</a>
+                    <a href="#">Contacto</a>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>&copy; 2026 Tecnilink. Todos los derechos reservados.</p>
+                <p>Hecho con ❤️ en Perú</p>
+            </div>
+        </div>
+    </footer>
+
+    <script src="script.js"></script>
+</body>
+</html>

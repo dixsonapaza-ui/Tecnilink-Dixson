@@ -1,4 +1,4 @@
-import { Link, NavLink, Outlet } from 'react-router-dom';
+import { Link, Outlet, useLocation } from 'react-router-dom';
 import {
   Activity,
   ClipboardList,
@@ -23,13 +23,16 @@ import {
 } from '../components/ui/dropdown-menu.jsx';
 import { useAuth } from '../context/AuthContext.jsx';
 
-const navLinkClass = ({ isActive }) =>
+const navLinkClass = (isActive) =>
   `inline-flex items-center gap-2 rounded-md px-3 py-2 text-sm font-medium ${
     isActive ? 'bg-slate-950 text-white' : 'text-slate-600 hover:bg-slate-100 hover:text-slate-950'
   }`;
 
 export const PrivateLayout = () => {
   const { logout, user } = useAuth();
+  const location = useLocation();
+  const currentPath = location.pathname;
+
   const handleLogout = () => {
     logout();
     toast.success('Sesion cerrada');
@@ -67,11 +70,14 @@ export const PrivateLayout = () => {
             <div className="hidden flex-wrap gap-1 lg:flex">
               {navItems.map((item) => {
                 const Icon = item.icon;
+                const isActive = item.to === '/requests'
+                  ? (currentPath === '/requests' || (currentPath.startsWith('/requests/') && currentPath !== '/requests/new'))
+                  : currentPath === item.to;
                 return (
-                  <NavLink key={item.to} to={item.to} className={navLinkClass}>
+                  <Link key={item.to} to={item.to} className={navLinkClass(isActive)}>
                     <Icon className="h-4 w-4" />
                     {item.label}
-                  </NavLink>
+                  </Link>
                 );
               })}
             </div>

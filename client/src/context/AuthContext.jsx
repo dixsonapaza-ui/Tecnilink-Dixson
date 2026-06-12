@@ -5,6 +5,7 @@ import {
   getCurrentUser,
   loginUser,
   registerUser,
+  loginWithGoogle,
 } from '../services/api.js';
 
 const AuthContext = createContext(null);
@@ -45,6 +46,14 @@ export const AuthProvider = ({ children }) => {
     return data.user;
   };
 
+  const loginGoogle = async (googlePayload) => {
+    const data = await loginWithGoogle(googlePayload);
+    localStorage.setItem(AUTH_TOKEN_KEY, data.token);
+    setToken(data.token);
+    setUser(data.user);
+    return data.user;
+  };
+
   const register = async (payload) => registerUser(payload);
 
   const logout = () => {
@@ -60,6 +69,7 @@ export const AuthProvider = ({ children }) => {
       isAuthenticated: Boolean(token && user),
       isLoading,
       login,
+      loginGoogle,
       register,
       logout,
     }),

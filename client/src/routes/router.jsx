@@ -21,12 +21,12 @@ import { UnauthorizedPage } from '../pages/UnauthorizedPage.jsx';
 export const router = createBrowserRouter([
   {
     path: '/',
+    element: <LandingPage />,
+  },
+  {
+    path: '/',
     element: <PublicLayout />,
     children: [
-      {
-        index: true,
-        element: <LandingPage />,
-      },
       {
         path: 'login',
         element: <LoginPage />,
