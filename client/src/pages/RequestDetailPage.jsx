@@ -22,6 +22,7 @@ import {
   getRequestById,
   getRequestComments,
   updateRequestStatus,
+  getTechniciansList,
 } from '../services/api.js';
 import { getApiErrorMessage } from '../utils/api-error.js';
 import { sanitizeMultilineText, sanitizeText } from '../utils/input-sanitizer.js';
@@ -35,6 +36,8 @@ export const RequestDetailPage = () => {
   const [commentPage, setCommentPage] = useState(1);
   const [commentContent, setCommentContent] = useState('');
   const [technicianId, setTechnicianId] = useState('');
+  const [technicians, setTechnicians] = useState([]);
+  const [searchFilter, setSearchFilter] = useState('');
   const [status, setStatus] = useState('EN_PROCESO');
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(true);
@@ -53,12 +56,23 @@ export const RequestDetailPage = () => {
     setCommentPage(targetPage);
   };
 
+  const loadTechnicians = async () => {
+    if (user?.role === 'ADMIN') {
+      try {
+        const result = await getTechniciansList();
+        setTechnicians(result.technicians || []);
+      } catch (err) {
+        console.error('No se pudo cargar la lista de tecnicos:', err);
+      }
+    }
+  };
+
   const loadDetail = async () => {
     setIsLoading(true);
     setError('');
 
     try {
-      await Promise.all([loadRequest(), loadComments(1)]);
+      await Promise.all([loadRequest(), loadComments(1), loadTechnicians()]);
     } catch (apiError) {
       setError(getApiErrorMessage(apiError, 'No se pudo cargar la solicitud.'));
     } finally {
@@ -218,15 +232,41 @@ export const RequestDetailPage = () => {
               </CardHeader>
               <CardContent>
                 <form onSubmit={handleAssign}>
-                  <p className="text-sm text-slate-600">Ingresa el ID de un usuario con rol TECNICO.</p>
+                  <p className="text-xs text-slate-500 mb-3">
+                    Filtra y selecciona uno de los tecnicos disponibles.
+                  </p>
+                  
                   <Input
-                    className="mt-4"
+                    className="mb-3 text-sm"
+                    value={searchFilter}
+                    onChange={(event) => setSearchFilter(event.target.value)}
+                    placeholder="🔍 Buscar tecnico por nombre o especialidad..."
+                  />
+
+                  <select
+                    className="h-10 w-full rounded-md border border-slate-200 bg-white px-3 py-2 text-sm focus:ring-2 focus:ring-slate-950/5 focus:outline-none"
                     value={technicianId}
                     onChange={(event) => setTechnicianId(event.target.value)}
-                    placeholder="ID_TECNICO"
                     required
-                  />
-                  <Button type="submit" className="mt-4">
+                  >
+                    <option value="">-- Seleccionar tecnico --</option>
+                    {technicians
+                      .filter((tech) => {
+                        const term = searchFilter.toLowerCase();
+                        const nameMatches = tech.name.toLowerCase().includes(term);
+                        const specialtyMatches = tech.specialty
+                          ? tech.specialty.toLowerCase().includes(term)
+                          : false;
+                        return nameMatches || specialtyMatches;
+                      })
+                      .map((tech) => (
+                        <option key={tech.id} value={tech.id}>
+                          {tech.name} {tech.specialty ? `(${tech.specialty})` : ''}
+                        </option>
+                      ))}
+                  </select>
+
+                  <Button type="submit" className="mt-4 w-full">
                     <UserPlus className="h-4 w-4" />
                     Asignar
                   </Button>

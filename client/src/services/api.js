@@ -166,4 +166,9 @@ export const uploadAvatar = async (formData) => {
   return response.data;
 };
 
+export const getTechniciansList = async () => {
+  const response = await api.get('/requests/technicians/list');
+  return response.data;
+};
+
 export { api };

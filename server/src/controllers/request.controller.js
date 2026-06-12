@@ -8,6 +8,7 @@ import {
   listRequests,
   updateAssignedRequestStatus,
   updateRequest,
+  getActiveTechnicians,
 } from '../services/request.service.js';
 
 export const indexRequests = async (req, res) => {
@@ -81,5 +82,13 @@ export const storeRequestComment = async (req, res) => {
   res.status(201).json({
     message: 'Comentario creado correctamente',
     comment,
+  });
+};
+
+export const listTechnicians = async (req, res) => {
+  const technicians = await getActiveTechnicians();
+  res.status(200).json({
+    success: true,
+    technicians,
   });
 };

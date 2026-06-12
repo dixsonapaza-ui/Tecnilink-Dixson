@@ -272,3 +272,22 @@ export const createRequestComment = async (user, requestId, { content }) => {
     include: commentInclude,
   });
 };
+
+export const getActiveTechnicians = async () => {
+  return prisma.user.findMany({
+    where: {
+      role: 'TECNICO',
+      isActive: true,
+    },
+    select: {
+      id: true,
+      name: true,
+      email: true,
+      specialty: true,
+      serviceArea: true,
+    },
+    orderBy: {
+      name: 'asc',
+    },
+  });
+};

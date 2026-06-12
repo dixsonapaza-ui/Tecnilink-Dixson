@@ -10,6 +10,7 @@ import {
   showRequest,
   storeRequest,
   storeRequestComment,
+  listTechnicians,
 } from '../controllers/request.controller.js';
 import {
   assignRequestSchema,
@@ -31,6 +32,11 @@ const requestRoutes = Router();
 requestRoutes.use(authenticateToken);
 
 requestRoutes.get('/', validateRequest(listRequestsSchema), asyncHandler(indexRequests));
+requestRoutes.get(
+  '/technicians/list',
+  authorizeRoles('ADMIN', 'SUPER_ADMIN'),
+  asyncHandler(listTechnicians),
+);
 requestRoutes.post(
   '/',
   authorizeRoles('CLIENTE'),
