@@ -63,6 +63,6 @@ export const uploadAvatar = async (req, res) => {
     });
   } catch (error) {
     console.error('Error en uploadAvatar:', error);
-    throw new AppError('Error al procesar y subir la imagen a Cloudinary', 500);
+    throw new AppError(`Error al subir la imagen: ${error.message || 'Error del servicio'}`, 400);
   }
 };
