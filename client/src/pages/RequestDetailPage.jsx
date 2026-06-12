@@ -206,8 +206,30 @@ export const RequestDetailPage = () => {
               </div>
               <div className="rounded-md border border-slate-200 bg-slate-50 p-4">
                 <dt className="font-medium text-slate-500">Tecnico</dt>
-                <dd className="mt-1 text-slate-950 font-semibold text-emerald-700">
-                  {request.technician?.name ? `Asignado a: ${request.technician.name}` : 'Sin asignar'}
+                <dd className="mt-2 flex items-center gap-3">
+                  {request.technician?.name ? (
+                    <>
+                      {request.technician.avatarUrl ? (
+                        <img
+                          src={request.technician.avatarUrl}
+                          alt={request.technician.name}
+                          className="h-10 w-10 rounded-full object-cover border border-slate-200 shadow-sm"
+                        />
+                      ) : (
+                        <div className="h-10 w-10 rounded-full bg-slate-900 text-white font-bold flex items-center justify-center shadow-sm">
+                          {request.technician.name[0].toUpperCase()}
+                        </div>
+                      )}
+                      <div>
+                        <p className="text-sm font-semibold text-emerald-700">
+                          Asignado a: {request.technician.name}
+                        </p>
+                        <p className="text-xs text-slate-500">{request.technician.email}</p>
+                      </div>
+                    </>
+                  ) : (
+                    <span className="text-sm text-slate-500 font-medium">Sin asignar</span>
+                  )}
                 </dd>
               </div>
             </dl>

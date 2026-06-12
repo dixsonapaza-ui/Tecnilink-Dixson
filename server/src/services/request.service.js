@@ -9,6 +9,7 @@ const userSummarySelect = {
   email: true,
   role: true,
   isActive: true,
+  avatarUrl: true,
 };
 
 const requestInclude = {
