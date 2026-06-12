@@ -23,6 +23,17 @@ api.interceptors.response.use(
     if (!error.response || error.response.status === 500) {
       window.location.href = '/server-error';
     }
+    // Si el token expira o es inválido (401)
+    if (error.response && error.response.status === 401) {
+      localStorage.removeItem(AUTH_TOKEN_KEY);
+      if (
+        !window.location.pathname.includes('/login') &&
+        !window.location.pathname.includes('/register') &&
+        window.location.pathname !== '/'
+      ) {
+        window.location.href = '/login?expired=true';
+      }
+    }
     return Promise.reject(error);
   }
 );
