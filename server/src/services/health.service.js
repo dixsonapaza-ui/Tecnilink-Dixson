@@ -15,8 +15,8 @@ const checkDatabase = async () => {
   }
 };
 
-export const getHealthStatus = async () => {
-  const database = await checkDatabase();
+export const getHealthStatus = async (quick = false) => {
+  const database = quick ? { status: 'up' } : await checkDatabase();
   const isHealthy = database.status === 'up';
 
   return {

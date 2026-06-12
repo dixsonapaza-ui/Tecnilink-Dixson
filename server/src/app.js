@@ -49,7 +49,7 @@ app.use(express.json({ limit: '1mb' }));
 app.use(
   morgan(env.nodeEnv === 'production' ? 'combined' : 'dev', {
     stream: httpLogStream,
-    skip: (req) => !env.enableRequestLogs || req.originalUrl === '/api/health',
+    skip: (req) => !env.enableRequestLogs || req.path === '/api/health',
   }),
 );
 
@@ -66,11 +66,12 @@ const globalRateLimiter = rateLimit({
   },
 });
 
+app.use('/api/health', healthRoutes);
+
 app.use(globalRateLimiter);
 
 app.use('/api/auth', authRoutes);
 app.use('/api/categories', categoryRoutes);
-app.use('/api/health', healthRoutes);
 app.use('/api/requests', requestRoutes);
 app.use('/api/superadmin', superadminRoutes);
 app.use('/api/profile', profileRoutes);
