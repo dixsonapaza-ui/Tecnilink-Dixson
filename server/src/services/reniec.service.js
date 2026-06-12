@@ -45,13 +45,37 @@ export const validateDni = async (dni) => {
     throw new AppError('El DNI ingresado no existe o no pudo ser validado', 400);
   }
 
-  const { numero, nombres, apellido_paterno, apellido_materno, nombre_completo } = body.data;
+  const {
+    numero,
+    codigo_verificacion,
+    nombres,
+    apellido_paterno,
+    apellido_materno,
+    nombre_completo,
+    departamento,
+    provincia,
+    distrito,
+    direccion,
+    direccion_completa,
+    ubigeo_reniec,
+    ubigeo_sunat,
+    ubigeo,
+  } = body.data;
 
   return {
     dni: numero,
-    nombres,
-    apellidoPaterno: apellido_paterno,
-    apellidoMaterno: apellido_materno,
-    nombreCompleto: nombre_completo,
+    reniecCodigoVerificacion: codigo_verificacion || null,
+    reniecNombres: nombres || null,
+    reniecApellidoPaterno: apellido_paterno || null,
+    reniecApellidoMaterno: apellido_materno || null,
+    reniecNombreCompleto: nombre_completo || null,
+    reniecDepartamento: departamento || null,
+    reniecProvincia: provincia || null,
+    reniecDistrito: distrito || null,
+    reniecDireccion: direccion || null,
+    reniecDireccionCompleta: direccion_completa || null,
+    reniecUbigeoReniec: ubigeo_reniec || null,
+    reniecUbigeoSunat: ubigeo_sunat || null,
+    reniecUbigeo: ubigeo || null,
   };
 };

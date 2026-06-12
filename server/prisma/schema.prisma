@@ -41,6 +41,24 @@ model User {
   dni              String?            @unique
   dniVerified      Boolean            @default(false)
   dniVerifiedAt    DateTime?
+  reniecCodigoVerificacion String?
+  reniecNombres String?
+  reniecApellidoPaterno String?
+  reniecApellidoMaterno String?
+  reniecNombreCompleto String?
+  reniecDepartamento String?
+  reniecProvincia String?
+  reniecDistrito String?
+  reniecDireccion String?
+  reniecDireccionCompleta String?
+  reniecUbigeoReniec String?
+  reniecUbigeoSunat String?
+  reniecUbigeo Json?
+  phone String?
+  bio String?
+  specialty String?
+  experienceYears Int?
+  serviceArea String?
   createdAt        DateTime           @default(now())
   updatedAt        DateTime           @updatedAt
   clientRequests   TechnicalRequest[] @relation("ClientRequests")

@@ -147,4 +147,23 @@ export const getAuditLogs = async (params = {}) => {
   return response.data;
 };
 
+export const getProfileMe = async () => {
+  const response = await api.get('/profile/me');
+  return response.data;
+};
+
+export const updateProfileMe = async (payload) => {
+  const response = await api.patch('/profile/me', payload);
+  return response.data;
+};
+
+export const uploadAvatar = async (formData) => {
+  const response = await api.post('/profile/avatar', formData, {
+    headers: {
+      'Content-Type': 'multipart/form-data',
+    },
+  });
+  return response.data;
+};
+
 export { api };

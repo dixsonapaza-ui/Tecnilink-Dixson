@@ -16,6 +16,7 @@ import { healthRoutes } from './routes/health.routes.js';
 import { requestContextMiddleware } from './middlewares/request-context.middleware.js';
 import { requestRoutes } from './routes/request.routes.js';
 import { superadminRoutes } from './routes/superadmin.routes.js';
+import { profileRoutes } from './routes/profile.routes.js';
 import { AppError } from './utils/app-error.js';
 
 const app = express();
@@ -72,6 +73,7 @@ app.use('/api/categories', categoryRoutes);
 app.use('/api/health', healthRoutes);
 app.use('/api/requests', requestRoutes);
 app.use('/api/superadmin', superadminRoutes);
+app.use('/api/profile', profileRoutes);
 
 app.use(notFoundMiddleware);
 app.use(errorMiddleware);

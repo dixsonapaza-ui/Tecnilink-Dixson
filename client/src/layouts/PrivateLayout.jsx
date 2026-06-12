@@ -11,6 +11,7 @@ import {
   ShieldAlert,
   UserCircle,
   Users,
+  Edit,
 } from 'lucide-react';
 import { toast } from 'sonner';
 
@@ -85,14 +86,34 @@ export const PrivateLayout = () => {
           <div className="flex items-center gap-2">
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button type="button" variant="outline">
-                  <UserCircle className="h-4 w-4" />
+                <Button type="button" variant="outline" className="flex items-center gap-2">
+                  {user?.avatarUrl ? (
+                    <img
+                      src={user.avatarUrl}
+                      alt={user.name}
+                      className="h-5 w-5 rounded-md object-cover"
+                    />
+                  ) : (
+                    <UserCircle className="h-4 w-4" />
+                  )}
                   <span className="hidden sm:inline">{user?.name}</span>
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end">
-                <DropdownMenuItem className="text-slate-500">
-                  {user?.email} - {user?.role}
+                <DropdownMenuItem className="text-slate-500 font-medium">
+                  {user?.email} ({user?.role})
+                </DropdownMenuItem>
+                <DropdownMenuItem asChild>
+                  <Link to="/profile" className="flex w-full items-center">
+                    <UserCircle className="mr-2 h-4 w-4" />
+                    Mi perfil
+                  </Link>
+                </DropdownMenuItem>
+                <DropdownMenuItem asChild>
+                  <Link to="/profile/edit" className="flex w-full items-center">
+                    <Edit className="mr-2 h-4 w-4" />
+                    Editar perfil
+                  </Link>
                 </DropdownMenuItem>
                 <DropdownMenuItem onClick={handleLogout}>
                   <LogOut className="mr-2 h-4 w-4" />

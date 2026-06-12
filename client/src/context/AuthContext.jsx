@@ -62,6 +62,10 @@ export const AuthProvider = ({ children }) => {
     setUser(null);
   };
 
+  const updateUser = (updatedUser) => {
+    setUser(updatedUser);
+  };
+
   const value = useMemo(
     () => ({
       token,
@@ -72,6 +76,7 @@ export const AuthProvider = ({ children }) => {
       loginGoogle,
       register,
       logout,
+      updateUser,
     }),
     [token, user, isLoading],
   );
