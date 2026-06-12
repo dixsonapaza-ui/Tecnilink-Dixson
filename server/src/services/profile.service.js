@@ -1,5 +1,6 @@
 import { prisma } from '../config/prisma.js';
 import { AppError } from '../utils/app-error.js';
+import { validateDni } from './reniec.service.js';
 
 export const publicProfileSelect = {
   id: true,
@@ -41,6 +42,21 @@ export const getProfileById = async (userId) => {
 
   if (!user) {
     throw new AppError('Usuario no encontrado', 404);
+  }
+
+  // Automatic backfill/healing for existing users registered before the RENIEC fields update
+  if (user.role === 'TECNICO' && user.dni && user.dniVerified && !user.reniecNombreCompleto) {
+    try {
+      const reniecData = await validateDni(user.dni);
+      const updatedUser = await prisma.user.update({
+        where: { id: userId },
+        data: reniecData,
+        select: publicProfileSelect,
+      });
+      return updatedUser;
+    } catch (err) {
+      console.error('[Profile Backfill Error] Failed to heal RENIEC data:', err);
+    }
   }
 
   return user;
