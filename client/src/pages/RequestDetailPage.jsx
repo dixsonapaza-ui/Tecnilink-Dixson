@@ -45,7 +45,7 @@ export const RequestDetailPage = () => {
   const loadRequest = async () => {
     const result = await getRequestById(id);
     setRequest(result.request);
-    setTechnicianId(result.request.technicianId || '');
+    setTechnicianId('');
     setStatus(result.request.status === 'ATENDIDA' ? 'ATENDIDA' : 'EN_PROCESO');
   };
 
@@ -90,13 +90,15 @@ export const RequestDetailPage = () => {
 
     const sanitizedTechnicianId = sanitizeText(technicianId);
     if (!sanitizedTechnicianId) {
-      setError('El ID del tecnico no puede estar vacio');
+      setError('Debes seleccionar un tecnico');
       return;
     }
 
     try {
       await assignRequest(id, { technicianId: sanitizedTechnicianId });
-      toast.success('Tecnico asignado');
+      toast.success('Tecnico asignado correctamente');
+      setSearchFilter('');
+      setTechnicianId('');
       await loadRequest();
     } catch (apiError) {
       const message = getApiErrorMessage(apiError, 'No se pudo asignar el tecnico.');
@@ -204,7 +206,9 @@ export const RequestDetailPage = () => {
               </div>
               <div className="rounded-md border border-slate-200 bg-slate-50 p-4">
                 <dt className="font-medium text-slate-500">Tecnico</dt>
-                <dd className="mt-1 text-slate-950">{request.technician?.name || 'Sin asignar'}</dd>
+                <dd className="mt-1 text-slate-950 font-semibold text-emerald-700">
+                  {request.technician?.name ? `Asignado a: ${request.technician.name}` : 'Sin asignar'}
+                </dd>
               </div>
             </dl>
             {canCancel && (
