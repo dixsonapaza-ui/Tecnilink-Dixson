@@ -87,3 +87,29 @@ export const googleAuthSchema = z.object({
     credential: z.string().trim().min(1, 'El token de Google es obligatorio'),
   }),
 });
+
+export const registerTechnicianSchema = z.object({
+  body: z.object({
+    name: z.preprocess(
+      (value) => sanitizeText(emptyWhenNotString(value)),
+      z
+        .string()
+        .min(2, 'El nombre debe tener al menos 2 caracteres')
+        .max(100, 'El nombre no debe superar 100 caracteres')
+        .refine(
+          (value) => nameRegex.test(value),
+          'El nombre solo puede contener letras, espacios, apostrofes y guiones',
+        )
+        .refine(isSafeInput, DANGEROUS_INPUT_MESSAGE),
+    ),
+    email: emailSchema,
+    password: passwordSchema,
+    dni: z.preprocess(
+      (value) => emptyWhenNotString(value).trim(),
+      z
+        .string()
+        .min(1, 'El DNI es obligatorio')
+        .regex(/^\d{8}$/, 'El DNI debe tener exactamente 8 digitos numericos'),
+    ),
+  }),
+});

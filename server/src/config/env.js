@@ -55,6 +55,8 @@ const envSchema = z.object({
   RATE_LIMIT_MAX: numberFromEnv(300),
   ENABLE_REQUEST_LOGS: booleanFromEnv(true),
   GOOGLE_CLIENT_ID: z.string().trim().min(1, 'GOOGLE_CLIENT_ID es obligatorio'),
+  RENIEC_API_BASE_URL: z.string().trim().url().default('https://api.factiliza.com/v1/dni/info'),
+  RENIEC_API_TOKEN: z.string().trim().min(1, 'RENIEC_API_TOKEN es obligatorio'),
 });
 
 const parsedEnv = envSchema.safeParse(process.env);
@@ -83,4 +85,6 @@ export const env = {
   rateLimitMax: validatedEnv.RATE_LIMIT_MAX,
   enableRequestLogs: validatedEnv.ENABLE_REQUEST_LOGS,
   googleClientId: validatedEnv.GOOGLE_CLIENT_ID,
+  reniecApiBaseUrl: validatedEnv.RENIEC_API_BASE_URL,
+  reniecApiToken: validatedEnv.RENIEC_API_TOKEN,
 };

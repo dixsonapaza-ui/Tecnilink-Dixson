@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Link, Navigate, useNavigate } from 'react-router-dom';
-import { Eye, EyeOff, UserPlus, Mail, Lock, User, Zap } from 'lucide-react';
+import { Eye, EyeOff, UserPlus, Mail, Lock, User, Zap, CreditCard } from 'lucide-react';
 import { toast } from 'sonner';
 import { motion } from 'framer-motion';
 
@@ -10,6 +10,7 @@ import { NetworkBackground } from '../components/NetworkBackground.jsx';
 import { useAuth } from '../context/AuthContext.jsx';
 import { GoogleAuthModal } from '../components/GoogleAuthModal.jsx';
 import { getApiErrorMessage } from '../utils/api-error.js';
+import { registerTechnician as registerTechnicianApi } from '../services/api.js';
 import { GoogleLogin } from '@react-oauth/google';
 import {
   createSafeChangeHandler,
@@ -51,7 +52,9 @@ const cardVariants = {
 export const RegisterPage = () => {
   const { isAuthenticated, register, loginGoogle } = useAuth();
   const navigate = useNavigate();
-  const [form, setForm] = useState({ name: '', email: '', password: '' });
+  const [form, setForm] = useState({ name: '', email: '', password: '', dni: '' });
+  const [selectedRole, setSelectedRole] = useState('CLIENTE');
+  const isTechnician = selectedRole === 'TECNICO';
   const [error, setError] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSpaceAttempted, setIsSpaceAttempted] = useState(false);
@@ -114,9 +117,15 @@ export const RegisterPage = () => {
     setError('');
     setIsSubmitting(true);
 
-    const nameError = validateName(form.name);
+    const nameError = isTechnician ? null : validateName(form.name);
     const emailError = validateEmail(form.email);
     const passwordErrors = validatePassword(form.password);
+
+    if (isTechnician && (!form.dni || !/^\d{8}$/.test(form.dni))) {
+      setError('El DNI debe tener exactamente 8 digitos numericos.');
+      setIsSubmitting(false);
+      return;
+    }
 
     if (nameError || emailError || passwordErrors.length > 0) {
       const messages = [nameError, emailError, ...passwordErrors].filter(Boolean);
@@ -125,15 +134,25 @@ export const RegisterPage = () => {
       return;
     }
 
-    const sanitizedForm = {
-      name: sanitizeText(form.name),
-      email: sanitizeText(form.email).toLowerCase(),
-      password: form.password,
-    };
-
     try {
-      await register(sanitizedForm);
-      toast.success('Cuenta creada');
+      if (isTechnician) {
+        const techPayload = {
+          name: sanitizeText(form.name) || 'Pendiente RENIEC',
+          email: sanitizeText(form.email).toLowerCase(),
+          password: form.password,
+          dni: form.dni.trim(),
+        };
+        await registerTechnicianApi(techPayload);
+        toast.success('Tecnico registrado. DNI verificado con RENIEC.');
+      } else {
+        const sanitizedForm = {
+          name: sanitizeText(form.name),
+          email: sanitizeText(form.email).toLowerCase(),
+          password: form.password,
+        };
+        await register(sanitizedForm);
+        toast.success('Cuenta creada');
+      }
       navigate('/login', {
         replace: true,
         state: { message: 'Cuenta creada correctamente. Ahora inicia sesion.' },
@@ -207,20 +226,86 @@ export const RegisterPage = () => {
                 <ErrorMessage message={error} />
               </motion.div>
 
-              {/* Name Field */}
+              {/* Role Selector */}
               <motion.div variants={itemVariants} className="mt-5">
+                <label className="block text-sm font-medium text-slate-700 mb-2">
+                  Tipo de cuenta
+                </label>
+                <div className="flex gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setSelectedRole('CLIENTE')}
+                    className={`flex-1 rounded-xl border px-4 py-2.5 text-sm font-semibold transition-all duration-200 ${
+                      !isTechnician
+                        ? 'border-slate-950 bg-slate-950 text-white shadow-lg shadow-slate-950/20'
+                        : 'border-slate-200 bg-white text-slate-600 hover:border-slate-300 hover:bg-slate-50'
+                    }`}
+                  >
+                    Cliente
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setSelectedRole('TECNICO')}
+                    className={`flex-1 rounded-xl border px-4 py-2.5 text-sm font-semibold transition-all duration-200 ${
+                      isTechnician
+                        ? 'border-slate-950 bg-slate-950 text-white shadow-lg shadow-slate-950/20'
+                        : 'border-slate-200 bg-white text-slate-600 hover:border-slate-300 hover:bg-slate-50'
+                    }`}
+                  >
+                    Tecnico
+                  </button>
+                </div>
+              </motion.div>
+
+              {/* DNI Field (only for TECNICO) */}
+              {isTechnician && (
+                <motion.div
+                  variants={itemVariants}
+                  className="mt-4"
+                  initial={{ opacity: 0, height: 0 }}
+                  animate={{ opacity: 1, height: 'auto' }}
+                  exit={{ opacity: 0, height: 0 }}
+                  transition={{ duration: 0.3 }}
+                >
+                  <label className="block text-sm font-medium text-slate-700">
+                    DNI (Documento Nacional de Identidad)
+                  </label>
+                  <div className="relative mt-2">
+                    <CreditCard className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+                    <Input
+                      className="pl-10 transition-all duration-200 focus:ring-2 focus:ring-slate-950/5"
+                      name="dni"
+                      placeholder="12345678"
+                      maxLength={8}
+                      value={form.dni}
+                      onChange={(e) => {
+                        const value = e.target.value.replace(/\D/g, '').slice(0, 8);
+                        setForm((prev) => ({ ...prev, dni: value }));
+                      }}
+                      required
+                    />
+                  </div>
+                  <p className="mt-1.5 text-xs text-slate-400">
+                    Se validara tu identidad con la RENIEC automaticamente
+                  </p>
+                </motion.div>
+              )}
+
+              {/* Name Field */}
+              <motion.div variants={itemVariants} className="mt-4">
                 <label className="block text-sm font-medium text-slate-700">
-                  Nombre completo
+                  {isTechnician ? 'Nombre (se completara con datos RENIEC)' : 'Nombre completo'}
                 </label>
                 <div className="relative mt-2">
                   <User className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
                   <Input
-                    className="pl-10 transition-all duration-200 focus:ring-2 focus:ring-slate-950/5"
+                    className={`pl-10 transition-all duration-200 focus:ring-2 focus:ring-slate-950/5 ${isTechnician ? 'bg-slate-50 text-slate-400' : ''}`}
                     name="name"
-                    placeholder="Tu nombre"
+                    placeholder={isTechnician ? 'Se autocompletara con RENIEC' : 'Tu nombre'}
                     value={form.name}
                     onChange={handleChange}
-                    required
+                    required={!isTechnician}
+                    disabled={isTechnician}
                   />
                 </div>
               </motion.div>

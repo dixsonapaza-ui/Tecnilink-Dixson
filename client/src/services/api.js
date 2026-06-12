@@ -37,6 +37,11 @@ export const registerUser = async (payload) => {
   return response.data;
 };
 
+export const registerTechnician = async (payload) => {
+  const response = await api.post('/auth/register-technician', payload);
+  return response.data;
+};
+
 export const loginUser = async (payload) => {
   const response = await api.post('/auth/login', payload);
   return response.data;

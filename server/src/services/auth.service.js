@@ -6,6 +6,7 @@ import { prisma } from '../config/prisma.js';
 import { env } from '../config/env.js';
 import { AppError } from '../utils/app-error.js';
 import { logAuditAction } from './audit.service.js';
+import { validateDni } from './reniec.service.js';
 
 const googleClient = new OAuth2Client(env.googleClientId);
 
@@ -61,6 +62,52 @@ export const registerClient = async ({ name, email, password }) => {
     },
     select: publicUserSelect,
   });
+
+  return user;
+};
+
+export const registerTechnician = async ({ name, email, password, dni }) => {
+  const existingEmail = await prisma.user.findUnique({
+    where: { email },
+    select: { id: true },
+  });
+
+  if (existingEmail) {
+    throw new AppError('El correo ya esta registrado', 409);
+  }
+
+  const existingDni = await prisma.user.findUnique({
+    where: { dni },
+    select: { id: true },
+  });
+
+  if (existingDni) {
+    throw new AppError('El DNI ya esta registrado en el sistema', 409);
+  }
+
+  // Validate DNI against RENIEC/Factiliza API
+  const reniecData = await validateDni(dni);
+
+  const hashedPassword = await bcrypt.hash(password, env.bcryptSaltRounds);
+
+  const user = await prisma.user.create({
+    data: {
+      name: reniecData.nombreCompleto,
+      email,
+      password: hashedPassword,
+      role: 'TECNICO',
+      dni: reniecData.dni,
+      dniVerified: true,
+      dniVerifiedAt: new Date(),
+    },
+    select: {
+      ...publicUserSelect,
+      dni: true,
+      dniVerified: true,
+    },
+  });
+
+  logAuditAction('REGISTER', `Technician ${email} registered with DNI ${dni} verified via RENIEC`, user.id);
 
   return user;
 };
