@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
-import { MessageSquarePlus, Save, UserPlus, XCircle } from 'lucide-react';
+import { MessageSquarePlus, Save, UserPlus, XCircle, CheckCircle2 } from 'lucide-react';
 import { toast } from 'sonner';
 
 import { EmptyState } from '../components/EmptyState.jsx';
@@ -38,6 +38,7 @@ export const RequestDetailPage = () => {
   const [technicianId, setTechnicianId] = useState('');
   const [technicians, setTechnicians] = useState([]);
   const [searchFilter, setSearchFilter] = useState('');
+  const [assigningStatus, setAssigningStatus] = useState('idle'); // 'idle' | 'loading' | 'success'
   const [status, setStatus] = useState('EN_PROCESO');
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(true);
@@ -94,13 +95,19 @@ export const RequestDetailPage = () => {
       return;
     }
 
+    setAssigningStatus('loading');
     try {
       await assignRequest(id, { technicianId: sanitizedTechnicianId });
-      toast.success('Tecnico asignado correctamente');
-      setSearchFilter('');
-      setTechnicianId('');
-      await loadRequest();
+      setAssigningStatus('success');
+      
+      setTimeout(async () => {
+        setSearchFilter('');
+        setTechnicianId('');
+        setAssigningStatus('idle');
+        await loadRequest();
+      }, 1500);
     } catch (apiError) {
+      setAssigningStatus('idle');
       const message = getApiErrorMessage(apiError, 'No se pudo asignar el tecnico.');
       setError(message);
       toast.error(message);
@@ -362,6 +369,29 @@ export const RequestDetailPage = () => {
         </div>
         </CardContent>
       </Card>
+
+      {/* Loading & Success Modal Overlay */}
+      {assigningStatus !== 'idle' && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-sm transition-opacity duration-300">
+          <div className="flex flex-col items-center justify-center rounded-2xl border border-slate-100 bg-white p-8 shadow-2xl max-w-sm w-full mx-4 animate-in zoom-in-95 duration-200">
+            {assigningStatus === 'loading' ? (
+              <>
+                <div className="h-12 w-12 animate-spin rounded-full border-4 border-slate-100 border-t-slate-950"></div>
+                <p className="mt-4 text-base font-bold text-slate-900">Asignando tecnico...</p>
+                <p className="mt-1 text-xs text-slate-400">Guardando cambios en el sistema</p>
+              </>
+            ) : (
+              <>
+                <div className="rounded-full bg-emerald-50 p-3 text-emerald-600 animate-bounce">
+                  <CheckCircle2 className="h-10 w-10" />
+                </div>
+                <p className="mt-4 text-base font-extrabold text-slate-900">¡Tecnico asignado!</p>
+                <p className="mt-1 text-xs text-slate-400">Solicitud actualizada correctamente</p>
+              </>
+            )}
+          </div>
+        </div>
+      )}
     </div>
   );
 };
