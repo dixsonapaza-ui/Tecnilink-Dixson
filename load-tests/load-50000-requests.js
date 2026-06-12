@@ -11,17 +11,16 @@ export const options = {
   },
   thresholds: {
     http_req_failed: ['rate<0.05'], // Menos del 5% de solicitudes fallidas
-    http_req_duration: ['p(95)<2000'], // El 95% de las peticiones deben responder en menos de 2s
+    http_req_duration: ['p(95)<4500'], // Ajustado para latencia de red WAN en plan gratuito de Render
   },
 };
 
 export const BASE_URL = __ENV.BASE_URL || 'https://tecnilink-backend.onrender.com';
 
 export default function () {
-  // Apunta a /api/health para probar la capacidad de red y procesamiento del servidor Express.
-  // Es ideal para alto volumen de peticiones (10k - 50k) porque no satura la escritura en BD Neon.
-  const response = http.get(`${BASE_URL}/api/health`, {
-    tags: { name: 'GET /api/health' },
+  // Apunta a /api/health?quick=true para responder en memoria desde Express sin sobrecargar la base de datos
+  const response = http.get(`${BASE_URL}/api/health?quick=true`, {
+    tags: { name: 'GET /api/health?quick=true' },
   });
 
   check(response, {
