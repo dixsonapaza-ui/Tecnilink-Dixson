@@ -1,6 +1,8 @@
 import {
   loginUser,
   registerClient,
+  registerTechnician as registerTechnicianService,
+  loginOrCreateGoogleUser,
 } from '../services/auth.service.js';
 
 export const register = async (req, res) => {
@@ -12,11 +14,29 @@ export const register = async (req, res) => {
   });
 };
 
+export const registerTechnician = async (req, res) => {
+  const user = await registerTechnicianService(req.body);
+
+  res.status(201).json({
+    message: 'Tecnico registrado correctamente. DNI verificado con RENIEC.',
+    user,
+  });
+};
+
 export const login = async (req, res) => {
   const session = await loginUser(req.body);
 
   res.status(200).json({
     message: 'Inicio de sesion exitoso',
+    ...session,
+  });
+};
+
+export const googleLogin = async (req, res) => {
+  const session = await loginOrCreateGoogleUser(req.body);
+
+  res.status(200).json({
+    message: 'Inicio de sesion con Google exitoso',
     ...session,
   });
 };

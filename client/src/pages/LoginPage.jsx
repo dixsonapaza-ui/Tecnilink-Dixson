@@ -1,5 +1,5 @@
-import { useState } from 'react';
-import { Link, Navigate, useLocation, useNavigate } from 'react-router-dom';
+import { useState, useEffect } from 'react';
+import { Link, Navigate, useLocation, useNavigate, useSearchParams } from 'react-router-dom';
 import { Eye, EyeOff, LogIn, Mail, Lock, Zap } from 'lucide-react';
 import { toast } from 'sonner';
 import { motion } from 'framer-motion';
@@ -9,7 +9,9 @@ import { Alert } from '../components/ui/alert.jsx';
 import { Input } from '../components/ui/input.jsx';
 import { NetworkBackground } from '../components/NetworkBackground.jsx';
 import { useAuth } from '../context/AuthContext.jsx';
+import { GoogleAuthModal } from '../components/GoogleAuthModal.jsx';
 import { getApiErrorMessage } from '../utils/api-error.js';
+import { GoogleLogin } from '@react-oauth/google';
 import { createSafeChangeHandler, sanitizeText } from '../utils/input-sanitizer.js';
 
 /* ── animation variants ── */
@@ -42,20 +44,57 @@ const cardVariants = {
 
 /* ── component ── */
 export const LoginPage = () => {
-  const { isAuthenticated, login } = useAuth();
+  const { isAuthenticated, login, loginGoogle } = useAuth();
   const location = useLocation();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const roleParam = searchParams.get('role');
+  
+  const [selectedRole, setSelectedRole] = useState(roleParam === 'TECNICO' ? 'TECNICO' : 'CLIENTE');
   const [form, setForm] = useState({ email: '', password: '' });
   const [error, setError] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSpaceAttempted, setIsSpaceAttempted] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+  const [isGoogleModalOpen, setIsGoogleModalOpen] = useState(false);
 
-  const hasMinLength = form.password.length >= 8;
-  const hasLowerCase = /[a-z]/.test(form.password);
-  const hasUpperCase = /[A-Z]/.test(form.password);
-  const hasSpecialChar = /[!@#$%^&*(),.?":{}|<>]/.test(form.password);
-  const isPasswordValid = hasMinLength && hasLowerCase && hasUpperCase && hasSpecialChar;
+  useEffect(() => {
+    if (roleParam === 'TECNICO') {
+      setSelectedRole('TECNICO');
+    } else if (roleParam === 'CLIENTE') {
+      setSelectedRole('CLIENTE');
+    }
+  }, [roleParam]);
+
+  const handleGoogleAuthenticate = async (credential) => {
+    setError('');
+    try {
+      await loginGoogle({ credential });
+      toast.success('Sesion iniciada con Google');
+      navigate(from, { replace: true });
+    } catch (apiError) {
+      const message = getApiErrorMessage(apiError, 'No se pudo iniciar sesion con Google.');
+      setError(message);
+      toast.error(message);
+    }
+  };
+
+  const handleMockGoogleAuthenticate = async ({ name, email }) => {
+    // Construct a mock JWT credential token that ends with .mock-signature for development mode
+    const payloadObj = {
+      name,
+      email,
+      email_verified: true,
+      sub: 'mock-' + email.replace(/[^a-zA-Z0-9]/g, ''),
+      picture: `https://api.dicebear.com/7.x/adventurer/svg?seed=${encodeURIComponent(name)}`,
+    };
+    const header = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9';
+    const payload = window.btoa(unescape(encodeURIComponent(JSON.stringify(payloadObj))));
+    const signature = 'mock-signature';
+    const fakeCredential = `${header}.${payload}.${signature}`;
+
+    await handleGoogleAuthenticate(fakeCredential);
+  };
 
   if (isAuthenticated) {
     return <Navigate to="/dashboard" replace />;
@@ -141,7 +180,9 @@ export const LoginPage = () => {
               variants={itemVariants}
               className="mt-2 text-center text-sm leading-relaxed text-slate-500"
             >
-              Conecta con tecnicos especializados en minutos
+              {selectedRole === 'TECNICO'
+                ? 'Accede a tu panel para ver solicitudes y aceptar trabajos.'
+                : 'Conecta con tecnicos especializados en minutos'}
             </motion.p>
           </motion.div>
 
@@ -163,6 +204,37 @@ export const LoginPage = () => {
 
               <motion.div variants={itemVariants} className="mt-2">
                 <ErrorMessage message={error} />
+              </motion.div>
+
+              {/* Role Selector */}
+              <motion.div variants={itemVariants} className="mt-5">
+                <label className="block text-sm font-medium text-slate-700 mb-2">
+                  Tipo de cuenta
+                </label>
+                <div className="flex gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setSelectedRole('CLIENTE')}
+                    className={`flex-1 rounded-xl border px-4 py-2.5 text-sm font-semibold transition-all duration-200 ${
+                      selectedRole === 'CLIENTE'
+                        ? 'border-slate-950 bg-slate-950 text-white shadow-lg shadow-slate-950/20'
+                        : 'border-slate-200 bg-white text-slate-600 hover:border-slate-300 hover:bg-slate-50'
+                    }`}
+                  >
+                    Cliente
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setSelectedRole('TECNICO')}
+                    className={`flex-1 rounded-xl border px-4 py-2.5 text-sm font-semibold transition-all duration-200 ${
+                      selectedRole === 'TECNICO'
+                        ? 'border-slate-950 bg-slate-950 text-white shadow-lg shadow-slate-950/20'
+                        : 'border-slate-200 bg-white text-slate-600 hover:border-slate-300 hover:bg-slate-50'
+                    }`}
+                  >
+                    Técnico
+                  </button>
+                </div>
               </motion.div>
 
               {/* Email Field */}
@@ -219,52 +291,16 @@ export const LoginPage = () => {
                   </motion.p>
                 )}
 
-                {form.password.length > 0 && (
-                  <motion.div
-                    initial={{ opacity: 0, height: 0 }}
-                    animate={{ opacity: 1, height: 'auto' }}
-                    transition={{ duration: 0.3 }}
-                    className="mt-3 space-y-1.5 overflow-hidden"
-                  >
-                    {[
-                      { check: hasMinLength, label: 'Minimo 8 caracteres' },
-                      { check: hasLowerCase, label: 'Al menos una letra minuscula' },
-                      { check: hasUpperCase, label: 'Al menos una letra mayuscula' },
-                      { check: hasSpecialChar, label: 'Al menos un caracter especial' },
-                    ].map(({ check, label }) => (
-                      <motion.div
-                        key={label}
-                        className="flex items-center gap-2"
-                        initial={{ opacity: 0, x: -10 }}
-                        animate={{ opacity: 1, x: 0 }}
-                        transition={{ duration: 0.2 }}
-                      >
-                        <div
-                          className={`flex h-4 w-4 items-center justify-center rounded-full text-[10px] font-bold transition-all duration-300 ${
-                            check
-                              ? 'bg-emerald-500 text-white shadow-sm shadow-emerald-500/30'
-                              : 'border border-slate-300 bg-slate-50 text-slate-400'
-                          }`}
-                        >
-                          {check ? '✓' : ''}
-                        </div>
-                        <span className={`text-xs transition-colors duration-300 ${check ? 'text-emerald-600' : 'text-slate-500'}`}>
-                          {label}
-                        </span>
-                      </motion.div>
-                    ))}
-                  </motion.div>
-                )}
               </motion.div>
 
               {/* Submit Button */}
               <motion.div variants={itemVariants} className="mt-7">
                 <motion.button
                   type="submit"
-                  disabled={isSubmitting || !isPasswordValid}
+                  disabled={isSubmitting || !form.password || !form.email}
                   className="relative flex h-11 w-full items-center justify-center gap-2 overflow-hidden rounded-xl bg-slate-950 text-sm font-semibold text-white shadow-lg shadow-slate-950/20 transition-all duration-200 hover:bg-slate-800 hover:shadow-xl hover:shadow-slate-950/25 disabled:cursor-not-allowed disabled:opacity-50"
-                  whileHover={!isSubmitting && isPasswordValid ? { scale: 1.01 } : {}}
-                  whileTap={!isSubmitting && isPasswordValid ? { scale: 0.98 } : {}}
+                  whileHover={!isSubmitting && form.password && form.email ? { scale: 1.01 } : {}}
+                  whileTap={!isSubmitting && form.password && form.email ? { scale: 0.98 } : {}}
                 >
                   {/* Shine effect */}
                   <motion.div
@@ -284,27 +320,69 @@ export const LoginPage = () => {
                 </motion.button>
               </motion.div>
 
-              {/* Divider */}
-              <motion.div
-                variants={itemVariants}
-                className="my-6 flex items-center gap-3"
-              >
-                <div className="h-px flex-1 bg-slate-200" />
-                <span className="text-xs text-slate-400">o</span>
-                <div className="h-px flex-1 bg-slate-200" />
-              </motion.div>
+              {/* Divider and Google Button or Info Alert */}
+              {selectedRole !== 'TECNICO' ? (
+                <>
+                  {/* Divider */}
+                  <motion.div
+                    variants={itemVariants}
+                    className="my-6 flex items-center gap-3"
+                  >
+                    <div className="h-px flex-1 bg-slate-200" />
+                    <span className="text-xs text-slate-400">o</span>
+                    <div className="h-px flex-1 bg-slate-200" />
+                  </motion.div>
+
+                  {/* Google Button */}
+                  <motion.div variants={itemVariants} className="mt-2 mb-6 flex flex-col items-center gap-3">
+                    <div className="w-full flex justify-center">
+                      <GoogleLogin
+                        onSuccess={(response) => handleGoogleAuthenticate(response.credential)}
+                        onError={() => toast.error('Error al iniciar sesión con Google')}
+                        theme="outline"
+                        size="large"
+                        text="continue_with"
+                        shape="pill"
+                        width="380"
+                      />
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => setIsGoogleModalOpen(true)}
+                      className="text-xs text-slate-400 hover:text-slate-600 transition-colors underline"
+                    >
+                      ¿Problemas con Google? Usar simulador local
+                    </button>
+                  </motion.div>
+                </>
+              ) : (
+                <motion.div
+                  variants={itemVariants}
+                  className="mt-6 mb-6 rounded-xl border border-blue-100 bg-blue-50/50 p-4 text-center text-xs leading-relaxed text-blue-700 shadow-sm"
+                >
+                  <p className="font-semibold text-blue-800 mb-1">Inicio rápido con Google deshabilitado para técnicos</p>
+                  Debes iniciar sesión usando el correo electrónico y contraseña registrados con tu DNI.
+                </motion.div>
+              )}
 
               {/* Register Link */}
               <motion.p
                 variants={itemVariants}
                 className="text-center text-sm text-slate-500"
               >
-                No tienes cuenta?{' '}
+                ¿No tienes cuenta? Regístrate como{' '}
                 <Link
                   className="font-semibold text-slate-950 underline-offset-4 transition-colors hover:underline"
-                  to="/register"
+                  to="/register?role=CLIENTE"
                 >
-                  Registrate
+                  Cliente
+                </Link>
+                {' '}o como{' '}
+                <Link
+                  className="font-semibold text-slate-950 underline-offset-4 transition-colors hover:underline"
+                  to="/register?role=TECNICO"
+                >
+                  Técnico
                 </Link>
               </motion.p>
             </form>
@@ -319,6 +397,12 @@ export const LoginPage = () => {
           transition={{ delay: 1, duration: 0.6, ease: 'easeOut' }}
         />
       </motion.div>
+
+      <GoogleAuthModal
+        isOpen={isGoogleModalOpen}
+        onClose={() => setIsGoogleModalOpen(false)}
+        onAuthenticate={handleMockGoogleAuthenticate}
+      />
     </section>
   );
 };

@@ -1,4 +1,4 @@
-import { Link, NavLink, Outlet } from 'react-router-dom';
+import { Link, Outlet, useLocation } from 'react-router-dom';
 import {
   Activity,
   ClipboardList,
@@ -11,10 +11,14 @@ import {
   ShieldAlert,
   UserCircle,
   Users,
+  Edit,
+  Briefcase,
+  Sliders,
 } from 'lucide-react';
 import { toast } from 'sonner';
 
 import { Button } from '../components/ui/button.jsx';
+import { NotificationBell } from '../components/NotificationBell.jsx';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -23,13 +27,16 @@ import {
 } from '../components/ui/dropdown-menu.jsx';
 import { useAuth } from '../context/AuthContext.jsx';
 
-const navLinkClass = ({ isActive }) =>
+const navLinkClass = (isActive) =>
   `inline-flex items-center gap-2 rounded-md px-3 py-2 text-sm font-medium ${
     isActive ? 'bg-slate-950 text-white' : 'text-slate-600 hover:bg-slate-100 hover:text-slate-950'
   }`;
 
 export const PrivateLayout = () => {
   const { logout, user } = useAuth();
+  const location = useLocation();
+  const currentPath = location.pathname;
+
   const handleLogout = () => {
     logout();
     toast.success('Sesion cerrada');
@@ -41,8 +48,14 @@ export const PrivateLayout = () => {
     ...(user?.role === 'CLIENTE'
       ? [{ to: '/requests/new', label: 'Nueva solicitud', icon: PlusCircle }]
       : []),
+    ...(user?.role === 'TECNICO'
+      ? [{ to: '/requests/available', label: 'Bolsa de trabajo', icon: Briefcase }]
+      : []),
     ...(user?.role === 'ADMIN' || user?.role === 'SUPER_ADMIN'
-      ? [{ to: '/categories', label: 'Categorias', icon: FolderTree }]
+      ? [
+          { to: '/categories', label: 'Categorias', icon: FolderTree },
+          { to: '/settings', label: 'Configuración', icon: Sliders },
+        ]
       : []),
     ...(user?.role === 'SUPER_ADMIN'
       ? [
@@ -67,26 +80,50 @@ export const PrivateLayout = () => {
             <div className="hidden flex-wrap gap-1 lg:flex">
               {navItems.map((item) => {
                 const Icon = item.icon;
+                const isActive = item.to === '/requests'
+                  ? (currentPath === '/requests' || (currentPath.startsWith('/requests/') && currentPath !== '/requests/new' && currentPath !== '/requests/available'))
+                  : currentPath === item.to;
                 return (
-                  <NavLink key={item.to} to={item.to} className={navLinkClass}>
+                  <Link key={item.to} to={item.to} className={navLinkClass(isActive)}>
                     <Icon className="h-4 w-4" />
                     {item.label}
-                  </NavLink>
+                  </Link>
                 );
               })}
             </div>
           </div>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-3">
+            <NotificationBell />
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button type="button" variant="outline">
-                  <UserCircle className="h-4 w-4" />
+                <Button type="button" variant="outline" className="flex items-center gap-2">
+                  {user?.avatarUrl ? (
+                    <img
+                      src={user.avatarUrl}
+                      alt={user.name}
+                      className="h-5 w-5 rounded-md object-cover"
+                    />
+                  ) : (
+                    <UserCircle className="h-4 w-4" />
+                  )}
                   <span className="hidden sm:inline">{user?.name}</span>
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end">
-                <DropdownMenuItem className="text-slate-500">
-                  {user?.email} - {user?.role}
+                <DropdownMenuItem className="text-slate-500 font-medium">
+                  {user?.email} ({user?.role})
+                </DropdownMenuItem>
+                <DropdownMenuItem asChild>
+                  <Link to="/profile" className="flex w-full items-center">
+                    <UserCircle className="mr-2 h-4 w-4" />
+                    Mi perfil
+                  </Link>
+                </DropdownMenuItem>
+                <DropdownMenuItem asChild>
+                  <Link to="/profile/edit" className="flex w-full items-center">
+                    <Edit className="mr-2 h-4 w-4" />
+                    Editar perfil
+                  </Link>
                 </DropdownMenuItem>
                 <DropdownMenuItem onClick={handleLogout}>
                   <LogOut className="mr-2 h-4 w-4" />

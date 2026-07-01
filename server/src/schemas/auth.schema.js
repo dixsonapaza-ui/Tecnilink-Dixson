@@ -29,20 +29,8 @@ const passwordSchema = z
       .min(8, 'La contrasena debe tener al menos 8 caracteres')
       .max(72, 'La contrasena no debe superar 72 caracteres')
       .refine(
-        (value) => /[a-z]/.test(value),
-        'La contrasena debe incluir al menos una letra minuscula',
-      )
-      .refine(
-        (value) => /[A-Z]/.test(value),
-        'La contrasena debe incluir al menos una letra mayuscula',
-      )
-      .refine(
         (value) => /\d/.test(value),
         'La contrasena debe incluir al menos un numero',
-      )
-      .refine(
-        (value) => /[!@#$%^&*()_+\-=[\]{};':"\\|,.<>/?`~]/.test(value),
-        'La contrasena debe incluir al menos un caracter especial',
       )
       .refine(
         (value) => !/[\x00-\x1F\x7F]/.test(value),
@@ -78,6 +66,38 @@ export const loginSchema = z.object({
         .string()
         .min(1, 'La contrasena es obligatoria')
         .max(72, 'La contrasena no debe superar 72 caracteres'),
+    ),
+  }),
+});
+
+export const googleAuthSchema = z.object({
+  body: z.object({
+    credential: z.string().trim().min(1, 'El token de Google es obligatorio'),
+  }),
+});
+
+export const registerTechnicianSchema = z.object({
+  body: z.object({
+    name: z.preprocess(
+      (value) => sanitizeText(emptyWhenNotString(value)),
+      z
+        .string()
+        .min(2, 'El nombre debe tener al menos 2 caracteres')
+        .max(100, 'El nombre no debe superar 100 caracteres')
+        .refine(
+          (value) => nameRegex.test(value),
+          'El nombre solo puede contener letras, espacios, apostrofes y guiones',
+        )
+        .refine(isSafeInput, DANGEROUS_INPUT_MESSAGE),
+    ),
+    email: emailSchema,
+    password: passwordSchema,
+    dni: z.preprocess(
+      (value) => emptyWhenNotString(value).trim(),
+      z
+        .string()
+        .min(1, 'El DNI es obligatorio')
+        .regex(/^\d{8}$/, 'El DNI debe tener exactamente 8 digitos numericos'),
     ),
   }),
 });

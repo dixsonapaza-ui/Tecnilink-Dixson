@@ -43,6 +43,7 @@ const main = async () => {
         email: 'carlos.tecnico@tecnilink.test',
         password,
         role: 'TECNICO',
+        specialty: 'Hardware, Software',
       },
     }),
     prisma.user.create({
@@ -51,6 +52,7 @@ const main = async () => {
         email: 'mariana.tecnico@tecnilink.test',
         password,
         role: 'TECNICO',
+        specialty: 'Redes, Cuentas y accesos',
       },
     }),
   ]);

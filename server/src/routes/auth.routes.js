@@ -1,11 +1,11 @@
 import { Router } from 'express';
 import rateLimit from 'express-rate-limit';
 
-import { login, me, register } from '../controllers/auth.controller.js';
+import { login, me, register, registerTechnician, googleLogin } from '../controllers/auth.controller.js';
 import { env } from '../config/env.js';
 import { authenticateToken } from '../middlewares/auth.middleware.js';
 import { asyncHandler } from '../utils/async-handler.js';
-import { loginSchema, registerSchema } from '../schemas/auth.schema.js';
+import { loginSchema, registerSchema, registerTechnicianSchema, googleAuthSchema } from '../schemas/auth.schema.js';
 import { validateRequest } from '../middlewares/validate.middleware.js';
 
 const authRoutes = Router();
@@ -24,8 +24,22 @@ const loginRateLimiter = rateLimit({
   skipSuccessfulRequests: true,
 });
 
+const dniRateLimiter = rateLimit({
+  windowMs: 60000,
+  limit: 5,
+  standardHeaders: true,
+  legacyHeaders: false,
+  handler: (req, res) => {
+    res.status(429).json({
+      message: 'Demasiadas consultas de DNI. Intenta nuevamente en un minuto.',
+    });
+  },
+});
+
 authRoutes.post('/register', validateRequest(registerSchema), asyncHandler(register));
+authRoutes.post('/register-technician', dniRateLimiter, validateRequest(registerTechnicianSchema), asyncHandler(registerTechnician));
 authRoutes.post('/login', loginRateLimiter, validateRequest(loginSchema), asyncHandler(login));
+authRoutes.post('/google', validateRequest(googleAuthSchema), asyncHandler(googleLogin));
 authRoutes.get('/me', authenticateToken, asyncHandler(me));
 
 export { authRoutes };

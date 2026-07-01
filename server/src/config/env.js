@@ -54,6 +54,12 @@ const envSchema = z.object({
   RATE_LIMIT_WINDOW_MS: numberFromEnv(900000),
   RATE_LIMIT_MAX: numberFromEnv(300),
   ENABLE_REQUEST_LOGS: booleanFromEnv(true),
+  GOOGLE_CLIENT_ID: z.string().trim().min(1, 'GOOGLE_CLIENT_ID es obligatorio'),
+  RENIEC_API_BASE_URL: z.string().trim().url().default('https://api.factiliza.com/v1/dni/info'),
+  RENIEC_API_TOKEN: z.string().trim().min(1, 'RENIEC_API_TOKEN es obligatorio'),
+  CLOUDINARY_CLOUD_NAME: z.string().trim().min(1, 'CLOUDINARY_CLOUD_NAME es obligatorio'),
+  CLOUDINARY_API_KEY: z.string().trim().min(1, 'CLOUDINARY_API_KEY es obligatorio'),
+  CLOUDINARY_API_SECRET: z.string().trim().min(1, 'CLOUDINARY_API_SECRET es obligatorio'),
 });
 
 const parsedEnv = envSchema.safeParse(process.env);
@@ -81,4 +87,10 @@ export const env = {
   rateLimitWindowMs: validatedEnv.RATE_LIMIT_WINDOW_MS,
   rateLimitMax: validatedEnv.RATE_LIMIT_MAX,
   enableRequestLogs: validatedEnv.ENABLE_REQUEST_LOGS,
+  googleClientId: validatedEnv.GOOGLE_CLIENT_ID,
+  reniecApiBaseUrl: validatedEnv.RENIEC_API_BASE_URL,
+  reniecApiToken: validatedEnv.RENIEC_API_TOKEN,
+  cloudinaryCloudName: validatedEnv.CLOUDINARY_CLOUD_NAME,
+  cloudinaryApiKey: validatedEnv.CLOUDINARY_API_KEY,
+  cloudinaryApiSecret: validatedEnv.CLOUDINARY_API_SECRET,
 };

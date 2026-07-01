@@ -16,6 +16,28 @@ api.interceptors.request.use((config) => {
   return config;
 });
 
+api.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    // Si no hay respuesta de red (servidor caído) o es un error 500
+    if (!error.response || error.response.status === 500) {
+      window.location.href = '/server-error';
+    }
+    // Si el token expira o es inválido (401)
+    if (error.response && error.response.status === 401) {
+      localStorage.removeItem(AUTH_TOKEN_KEY);
+      if (
+        !window.location.pathname.includes('/login') &&
+        !window.location.pathname.includes('/register') &&
+        window.location.pathname !== '/'
+      ) {
+        window.location.href = '/login?expired=true';
+      }
+    }
+    return Promise.reject(error);
+  }
+);
+
 export const getHealthStatus = async () => {
   const response = await api.get('/health');
   return response.data;
@@ -26,6 +48,11 @@ export const registerUser = async (payload) => {
   return response.data;
 };
 
+export const registerTechnician = async (payload) => {
+  const response = await api.post('/auth/register-technician', payload);
+  return response.data;
+};
+
 export const loginUser = async (payload) => {
   const response = await api.post('/auth/login', payload);
   return response.data;
@@ -33,6 +60,11 @@ export const loginUser = async (payload) => {
 
 export const getCurrentUser = async () => {
   const response = await api.get('/auth/me');
+  return response.data;
+};
+
+export const loginWithGoogle = async (payload) => {
+  const response = await api.post('/auth/google', payload);
   return response.data;
 };
 
@@ -123,6 +155,68 @@ export const deactivateAdmin = async (adminId) => {
 
 export const getAuditLogs = async (params = {}) => {
   const response = await api.get('/superadmin/audit', { params });
+  return response.data;
+};
+
+export const getProfileMe = async () => {
+  const response = await api.get('/profile/me');
+  return response.data;
+};
+
+export const updateProfileMe = async (payload) => {
+  const response = await api.patch('/profile/me', payload);
+  return response.data;
+};
+
+export const uploadAvatar = async (formData) => {
+  const response = await api.post('/profile/avatar', formData, {
+    headers: {
+      'Content-Type': 'multipart/form-data',
+    },
+  });
+  return response.data;
+};
+
+export const getTechniciansList = async () => {
+  const response = await api.get('/requests/technicians/list');
+  return response.data;
+};
+
+// System/Company Settings
+export const getSettings = async () => {
+  const response = await api.get('/settings');
+  return response.data;
+};
+
+export const updateSettings = async (payload) => {
+  const response = await api.put('/settings', payload);
+  return response.data;
+};
+
+// Available requests for Technicians
+export const getAvailableRequests = async (params = {}) => {
+  const response = await api.get('/requests/available', { params });
+  return response.data;
+};
+
+export const takeRequest = async (requestId) => {
+  const response = await api.post(`/requests/${requestId}/take`);
+  return response.data;
+};
+
+export const releaseRequest = async (requestId) => {
+  const response = await api.post(`/requests/${requestId}/release`);
+  return response.data;
+};
+
+// Notifications
+export const getNotifications = async () => {
+  const response = await api.get('/notifications');
+  return response.data;
+};
+
+export const markNotificationsAsRead = async () => {
+  const response = await api.put('/notifications/read');
   return response.data;
 };
 

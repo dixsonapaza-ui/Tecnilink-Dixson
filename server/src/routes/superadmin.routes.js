@@ -1,4 +1,5 @@
 import { Router } from 'express';
+import { z } from 'zod';
 import {
   getMetrics,
   indexAdmins,
@@ -24,19 +25,19 @@ router.get('/admins', asyncHandler(indexAdmins));
 
 router.post(
   '/admins',
-  validateRequest({ body: registerSchema }),
+  validateRequest(z.object({ body: registerSchema })),
   asyncHandler(storeAdmin)
 );
 
 router.patch(
   '/admins/:id/deactivate',
-  validateRequest({ params: idParamSchema }),
+  validateRequest(z.object({ params: idParamSchema })),
   asyncHandler(toggleAdminStatus)
 );
 
 router.get(
   '/audit',
-  validateRequest({ query: paginationQuerySchema }),
+  validateRequest(z.object({ query: paginationQuerySchema })),
   asyncHandler(indexAuditLogs)
 );
 

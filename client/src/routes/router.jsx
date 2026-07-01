@@ -17,16 +17,20 @@ import { SuperAdminAdminsPage } from '../pages/SuperAdminAdminsPage.jsx';
 import { SuperAdminAuditPage } from '../pages/SuperAdminAuditPage.jsx';
 import { SuperAdminMetricsPage } from '../pages/SuperAdminMetricsPage.jsx';
 import { UnauthorizedPage } from '../pages/UnauthorizedPage.jsx';
+import { ProfilePage } from '../pages/ProfilePage.jsx';
+import { ProfileEditPage } from '../pages/ProfileEditPage.jsx';
+import { AvailableRequestsPage } from '../pages/AvailableRequestsPage.jsx';
+import { SettingsPage } from '../pages/SettingsPage.jsx';
 
 export const router = createBrowserRouter([
   {
     path: '/',
+    element: <LandingPage />,
+  },
+  {
+    path: '/',
     element: <PublicLayout />,
     children: [
-      {
-        index: true,
-        element: <LandingPage />,
-      },
       {
         path: 'login',
         element: <LoginPage />,
@@ -52,11 +56,28 @@ export const router = createBrowserRouter([
             element: <RequestsPage />,
           },
           {
+            path: '/profile',
+            element: <ProfilePage />,
+          },
+          {
+            path: '/profile/edit',
+            element: <ProfileEditPage />,
+          },
+          {
             element: <ProtectedRoute allowedRoles={['CLIENTE']} />,
             children: [
               {
                 path: '/requests/new',
                 element: <CreateRequestPage />,
+              },
+            ],
+          },
+          {
+            element: <ProtectedRoute allowedRoles={['TECNICO']} />,
+            children: [
+              {
+                path: '/requests/available',
+                element: <AvailableRequestsPage />,
               },
             ],
           },
@@ -70,6 +91,10 @@ export const router = createBrowserRouter([
               {
                 path: '/categories',
                 element: <CategoriesPage />,
+              },
+              {
+                path: '/settings',
+                element: <SettingsPage />,
               },
             ],
           },

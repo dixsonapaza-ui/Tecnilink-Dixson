@@ -1,6 +1,6 @@
-import { useState } from 'react';
-import { Link, Navigate, useNavigate } from 'react-router-dom';
-import { Eye, EyeOff, UserPlus, Mail, Lock, User, Zap } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { Link, Navigate, useNavigate, useSearchParams } from 'react-router-dom';
+import { Eye, EyeOff, UserPlus, Mail, Lock, User, Zap, CreditCard } from 'lucide-react';
 import { toast } from 'sonner';
 import { motion } from 'framer-motion';
 
@@ -8,7 +8,10 @@ import { ErrorMessage } from '../components/ErrorMessage.jsx';
 import { Input } from '../components/ui/input.jsx';
 import { NetworkBackground } from '../components/NetworkBackground.jsx';
 import { useAuth } from '../context/AuthContext.jsx';
+import { GoogleAuthModal } from '../components/GoogleAuthModal.jsx';
 import { getApiErrorMessage } from '../utils/api-error.js';
+import { registerTechnician as registerTechnicianApi } from '../services/api.js';
+import { GoogleLogin } from '@react-oauth/google';
 import {
   createSafeChangeHandler,
   sanitizeText,
@@ -47,19 +50,76 @@ const cardVariants = {
 
 /* ── component ── */
 export const RegisterPage = () => {
-  const { isAuthenticated, register } = useAuth();
+  const { isAuthenticated, register, loginGoogle } = useAuth();
   const navigate = useNavigate();
-  const [form, setForm] = useState({ name: '', email: '', password: '' });
+  const [searchParams] = useSearchParams();
+  const roleParam = searchParams.get('role');
+  const [selectedRole, setSelectedRole] = useState(roleParam === 'TECNICO' ? 'TECNICO' : 'CLIENTE');
+
+  useEffect(() => {
+    if (roleParam === 'TECNICO') {
+      setSelectedRole('TECNICO');
+    } else if (roleParam === 'CLIENTE') {
+      setSelectedRole('CLIENTE');
+    }
+  }, [roleParam]);
+
+  const isTechnician = selectedRole === 'TECNICO';
+  const [form, setForm] = useState({ name: '', email: '', password: '', dni: '' });
   const [error, setError] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSpaceAttempted, setIsSpaceAttempted] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+  const [isGoogleModalOpen, setIsGoogleModalOpen] = useState(false);
+
+  const handleRoleChange = (role) => {
+    setSelectedRole(role);
+    if (role === 'TECNICO') {
+      toast.info('Modo Técnico Seleccionado', {
+        description: 'Las cuentas de técnico requieren DNI oficial para la verificación automática con RENIEC. El registro rápido con Google no está disponible.',
+        duration: 6000,
+      });
+    } else {
+      toast.success('Modo Cliente Seleccionado', {
+        description: 'Puedes completar el formulario o registrarte rápidamente usando tu cuenta de Google.',
+        duration: 4000,
+      });
+    }
+  };
+
+  const handleGoogleAuthenticate = async (credential) => {
+    setError('');
+    try {
+      await loginGoogle({ credential });
+      toast.success('Sesion iniciada con Google');
+      navigate('/dashboard', { replace: true });
+    } catch (apiError) {
+      const message = getApiErrorMessage(apiError, 'No se pudo registrar/iniciar sesion con Google.');
+      setError(message);
+      toast.error(message);
+    }
+  };
+
+  const handleMockGoogleAuthenticate = async ({ name, email }) => {
+    // Construct a mock JWT credential token that ends with .mock-signature for development mode
+    const payloadObj = {
+      name,
+      email,
+      email_verified: true,
+      sub: 'mock-' + email.replace(/[^a-zA-Z0-9]/g, ''),
+      picture: `https://api.dicebear.com/7.x/adventurer/svg?seed=${encodeURIComponent(name)}`,
+    };
+    const header = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9';
+    const payload = window.btoa(unescape(encodeURIComponent(JSON.stringify(payloadObj))));
+    const signature = 'mock-signature';
+    const fakeCredential = `${header}.${payload}.${signature}`;
+
+    await handleGoogleAuthenticate(fakeCredential);
+  };
 
   const hasMinLength = form.password.length >= 8;
-  const hasLowerCase = /[a-z]/.test(form.password);
-  const hasUpperCase = /[A-Z]/.test(form.password);
-  const hasSpecialChar = /[!@#$%^&*(),.?":{}|<>]/.test(form.password);
-  const isPasswordValid = hasMinLength && hasLowerCase && hasUpperCase && hasSpecialChar;
+  const hasNumber = /\d/.test(form.password);
+  const isPasswordValid = hasMinLength && hasNumber;
 
   if (isAuthenticated) {
     return <Navigate to="/dashboard" replace />;
@@ -81,9 +141,15 @@ export const RegisterPage = () => {
     setError('');
     setIsSubmitting(true);
 
-    const nameError = validateName(form.name);
+    const nameError = isTechnician ? null : validateName(form.name);
     const emailError = validateEmail(form.email);
     const passwordErrors = validatePassword(form.password);
+
+    if (isTechnician && (!form.dni || !/^\d{8}$/.test(form.dni))) {
+      setError('El DNI debe tener exactamente 8 digitos numericos.');
+      setIsSubmitting(false);
+      return;
+    }
 
     if (nameError || emailError || passwordErrors.length > 0) {
       const messages = [nameError, emailError, ...passwordErrors].filter(Boolean);
@@ -92,15 +158,25 @@ export const RegisterPage = () => {
       return;
     }
 
-    const sanitizedForm = {
-      name: sanitizeText(form.name),
-      email: sanitizeText(form.email).toLowerCase(),
-      password: form.password,
-    };
-
     try {
-      await register(sanitizedForm);
-      toast.success('Cuenta creada');
+      if (isTechnician) {
+        const techPayload = {
+          name: sanitizeText(form.name) || 'Pendiente RENIEC',
+          email: sanitizeText(form.email).toLowerCase(),
+          password: form.password,
+          dni: form.dni.trim(),
+        };
+        await registerTechnicianApi(techPayload);
+        toast.success('Tecnico registrado. DNI verificado con RENIEC.');
+      } else {
+        const sanitizedForm = {
+          name: sanitizeText(form.name),
+          email: sanitizeText(form.email).toLowerCase(),
+          password: form.password,
+        };
+        await register(sanitizedForm);
+        toast.success('Cuenta creada');
+      }
       navigate('/login', {
         replace: true,
         state: { message: 'Cuenta creada correctamente. Ahora inicia sesion.' },
@@ -174,20 +250,86 @@ export const RegisterPage = () => {
                 <ErrorMessage message={error} />
               </motion.div>
 
-              {/* Name Field */}
+              {/* Role Selector */}
               <motion.div variants={itemVariants} className="mt-5">
+                <label className="block text-sm font-medium text-slate-700 mb-2">
+                  Tipo de cuenta
+                </label>
+                <div className="flex gap-2">
+                  <button
+                    type="button"
+                    onClick={() => handleRoleChange('CLIENTE')}
+                    className={`flex-1 rounded-xl border px-4 py-2.5 text-sm font-semibold transition-all duration-200 ${
+                      !isTechnician
+                        ? 'border-slate-950 bg-slate-950 text-white shadow-lg shadow-slate-950/20'
+                        : 'border-slate-200 bg-white text-slate-600 hover:border-slate-300 hover:bg-slate-50'
+                    }`}
+                  >
+                    Cliente
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => handleRoleChange('TECNICO')}
+                    className={`flex-1 rounded-xl border px-4 py-2.5 text-sm font-semibold transition-all duration-200 ${
+                      isTechnician
+                        ? 'border-slate-950 bg-slate-950 text-white shadow-lg shadow-slate-950/20'
+                        : 'border-slate-200 bg-white text-slate-600 hover:border-slate-300 hover:bg-slate-50'
+                    }`}
+                  >
+                    Tecnico
+                  </button>
+                </div>
+              </motion.div>
+
+              {/* DNI Field (only for TECNICO) */}
+              {isTechnician && (
+                <motion.div
+                  variants={itemVariants}
+                  className="mt-4"
+                  initial={{ opacity: 0, height: 0 }}
+                  animate={{ opacity: 1, height: 'auto' }}
+                  exit={{ opacity: 0, height: 0 }}
+                  transition={{ duration: 0.3 }}
+                >
+                  <label className="block text-sm font-medium text-slate-700">
+                    DNI (Documento Nacional de Identidad)
+                  </label>
+                  <div className="relative mt-2">
+                    <CreditCard className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+                    <Input
+                      className="pl-10 transition-all duration-200 focus:ring-2 focus:ring-slate-950/5"
+                      name="dni"
+                      placeholder="12345678"
+                      maxLength={8}
+                      value={form.dni}
+                      onChange={(e) => {
+                        const value = e.target.value.replace(/\D/g, '').slice(0, 8);
+                        setForm((prev) => ({ ...prev, dni: value }));
+                      }}
+                      required
+                    />
+                  </div>
+                  <p className="mt-1.5 text-xs text-slate-400">
+                    Se validara tu identidad con la RENIEC automaticamente
+                  </p>
+                </motion.div>
+              )}
+
+              {/* Name Field */}
+              <motion.div variants={itemVariants} className="mt-4">
                 <label className="block text-sm font-medium text-slate-700">
-                  Nombre completo
+                  {isTechnician ? 'Nombre (se completara con datos RENIEC)' : 'Nombre completo'}
                 </label>
                 <div className="relative mt-2">
                   <User className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
                   <Input
-                    className="pl-10 transition-all duration-200 focus:ring-2 focus:ring-slate-950/5"
+                    className={`pl-10 transition-all duration-200 focus:ring-2 focus:ring-slate-950/5 ${isTechnician ? 'bg-slate-50 text-slate-400' : ''}`}
                     name="name"
-                    placeholder="Tu nombre"
+                    placeholder={isTechnician ? 'Se autocompletara con RENIEC' : 'Tu nombre'}
                     value={form.name}
                     onChange={handleChange}
-                    required
+                    required={!isTechnician}
+                    disabled={isTechnician}
                   />
                 </div>
               </motion.div>
@@ -256,9 +398,7 @@ export const RegisterPage = () => {
                   >
                     {[
                       { check: hasMinLength, label: 'Minimo 8 caracteres' },
-                      { check: hasLowerCase, label: 'Al menos una letra minuscula' },
-                      { check: hasUpperCase, label: 'Al menos una letra mayuscula' },
-                      { check: hasSpecialChar, label: 'Al menos un caracter especial' },
+                      { check: hasNumber, label: 'Al menos un numero' },
                     ].map(({ check, label }) => (
                       <motion.div
                         key={label}
@@ -294,7 +434,15 @@ export const RegisterPage = () => {
                   <span className="text-[10px]">👤</span>
                 </div>
                 <span className="text-xs text-slate-500">
-                  El registro publico crea cuentas con rol <span className="font-semibold text-slate-700">CLIENTE</span>
+                  {isTechnician ? (
+                    <>
+                      El registro creará una cuenta con rol <span className="font-semibold text-slate-700">TÉCNICO</span> (sujeta a verificación)
+                    </>
+                  ) : (
+                    <>
+                      El registro público crea cuentas con rol <span className="font-semibold text-slate-700">CLIENTE</span>
+                    </>
+                  )}
                 </span>
               </motion.div>
 
@@ -325,27 +473,62 @@ export const RegisterPage = () => {
                 </motion.button>
               </motion.div>
 
-              {/* Divider */}
-              <motion.div
-                variants={itemVariants}
-                className="my-6 flex items-center gap-3"
-              >
-                <div className="h-px flex-1 bg-slate-200" />
-                <span className="text-xs text-slate-400">o</span>
-                <div className="h-px flex-1 bg-slate-200" />
-              </motion.div>
+              {/* Divider and Google Button or Info Alert */}
+              {!isTechnician ? (
+                <>
+                  {/* Divider */}
+                  <motion.div
+                    variants={itemVariants}
+                    className="my-6 flex items-center gap-3"
+                  >
+                    <div className="h-px flex-1 bg-slate-200" />
+                    <span className="text-xs text-slate-400">o</span>
+                    <div className="h-px flex-1 bg-slate-200" />
+                  </motion.div>
+
+                  {/* Google Button */}
+                  <motion.div variants={itemVariants} className="mt-2 mb-6 flex flex-col items-center gap-3">
+                    <div className="w-full flex justify-center">
+                      <GoogleLogin
+                        onSuccess={(response) => handleGoogleAuthenticate(response.credential)}
+                        onError={() => toast.error('Error al iniciar sesión con Google')}
+                        theme="outline"
+                        size="large"
+                        text="continue_with"
+                        shape="pill"
+                        width="380"
+                      />
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => setIsGoogleModalOpen(true)}
+                      className="text-xs text-slate-400 hover:text-slate-600 transition-colors underline"
+                    >
+                      ¿Problemas con Google? Usar simulador local
+                    </button>
+                  </motion.div>
+                </>
+              ) : (
+                <motion.div
+                  variants={itemVariants}
+                  className="mt-6 mb-6 rounded-xl border border-blue-100 bg-blue-50/50 p-4 text-center text-xs leading-relaxed text-blue-700 shadow-sm"
+                >
+                  <p className="font-semibold text-blue-800 mb-1">Registro con Google deshabilitado para técnicos</p>
+                  Las cuentas de técnico requieren ingresar su DNI para la validación oficial con RENIEC. Por favor, complete el formulario superior.
+                </motion.div>
+              )}
 
               {/* Login Link */}
               <motion.p
                 variants={itemVariants}
                 className="text-center text-sm text-slate-500"
               >
-                Ya tienes cuenta?{' '}
+                ¿Ya tienes cuenta?{' '}
                 <Link
                   className="font-semibold text-slate-950 underline-offset-4 transition-colors hover:underline"
-                  to="/login"
+                  to={selectedRole === 'TECNICO' ? '/login?role=TECNICO' : '/login?role=CLIENTE'}
                 >
-                  Inicia sesion
+                  Inicia sesión
                 </Link>
               </motion.p>
             </form>
@@ -360,6 +543,12 @@ export const RegisterPage = () => {
           transition={{ delay: 1, duration: 0.6, ease: 'easeOut' }}
         />
       </motion.div>
+
+      <GoogleAuthModal
+        isOpen={isGoogleModalOpen}
+        onClose={() => setIsGoogleModalOpen(false)}
+        onAuthenticate={handleMockGoogleAuthenticate}
+      />
     </section>
   );
 };

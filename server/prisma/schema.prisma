@@ -17,6 +17,7 @@ enum Role {
 
 enum RequestStatus {
   PENDIENTE
+  DISPONIBLE
   EN_PROCESO
   ATENDIDA
   CANCELADA
@@ -32,15 +33,40 @@ model User {
   id               String             @id @default(cuid())
   name             String
   email            String             @unique
-  password         String
+  password         String?
   role             Role               @default(CLIENTE)
   isActive         Boolean            @default(true)
+  googleId         String?            @unique
+  avatarUrl        String?
+  authProvider     String?
+  dni              String?            @unique
+  dniVerified      Boolean            @default(false)
+  dniVerifiedAt    DateTime?
+  reniecCodigoVerificacion String?
+  reniecNombres String?
+  reniecApellidoPaterno String?
+  reniecApellidoMaterno String?
+  reniecNombreCompleto String?
+  reniecDepartamento String?
+  reniecProvincia String?
+  reniecDistrito String?
+  reniecDireccion String?
+  reniecDireccionCompleta String?
+  reniecUbigeoReniec String?
+  reniecUbigeoSunat String?
+  reniecUbigeo Json?
+  phone String?
+  bio String?
+  specialty String?
+  experienceYears Int?
+  serviceArea String?
   createdAt        DateTime           @default(now())
   updatedAt        DateTime           @updatedAt
   clientRequests   TechnicalRequest[] @relation("ClientRequests")
   assignedRequests TechnicalRequest[] @relation("TechnicianRequests")
   comments         RequestComment[]
   auditLogs        AuditLog[]
+  notifications    Notification[]
 
   @@index([email])
   @@index([role])
@@ -67,6 +93,7 @@ model TechnicalRequest {
   categoryId   String
   createdAt    DateTime         @default(now())
   updatedAt    DateTime         @updatedAt
+  acceptedAt   DateTime?
   client       User             @relation("ClientRequests", fields: [clientId], references: [id])
   technician   User?            @relation("TechnicianRequests", fields: [technicianId], references: [id])
   category     ServiceCategory  @relation(fields: [categoryId], references: [id])
@@ -103,4 +130,24 @@ model AuditLog {
 
   @@index([action])
   @@index([createdAt])
+}
+
+model Notification {
+  id        String   @id @default(cuid())
+  userId    String
+  title     String
+  message   String
+  isRead    Boolean  @default(false)
+  createdAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([createdAt])
+}
+
+model CompanySettings {
+  id             String   @id @default(cuid())
+  assignmentMode String   @default("MANUAL") // MANUAL | SELF_ASSIGNMENT | AUTO
+  maxActiveJobs  Int      @default(3)        // Regla anti-cherry picking: límite de trabajos activos por técnico
+  updatedAt      DateTime @updatedAt
 }
