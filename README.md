@@ -1,322 +1,418 @@
-# Tecnilink
+<![CDATA[<div align="center">
 
-Tecnilink es una plataforma web academica para gestionar solicitudes de soporte tecnico. El sistema permitira que clientes creen solicitudes, tecnicos atiendan casos asignados y administradores gestionen usuarios, categorias, solicitudes y metricas basicas.
+# 🔧 Tecnilink
 
-El proyecto se desarrolla por fases. Actualmente incluye un monorepo con frontend y backend separados, una API Express basica, configuracion inicial de Prisma, modelo PostgreSQL preparado para Neon y autenticacion con JWT.
+**Plataforma de Gestión de Soporte Técnico**
 
-## Tecnologias iniciales
+![Node.js](https://img.shields.io/badge/Node.js-≥20-339933?logo=node.js&logoColor=white)
+![Express](https://img.shields.io/badge/Express-4.x-000000?logo=express&logoColor=white)
+![React](https://img.shields.io/badge/React-18-61DAFB?logo=react&logoColor=black)
+![Prisma](https://img.shields.io/badge/Prisma-6.x-2D3748?logo=prisma&logoColor=white)
+![PostgreSQL](https://img.shields.io/badge/PostgreSQL-Neon-4169E1?logo=postgresql&logoColor=white)
+![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-3.x-06B6D4?logo=tailwindcss&logoColor=white)
+
+</div>
+
+---
+
+## 📋 Descripción
+
+Tecnilink es una plataforma web académica para gestionar solicitudes de soporte técnico. El sistema permite que **clientes** creen solicitudes, **técnicos** atiendan casos asignados y **administradores** gestionen usuarios, categorías, solicitudes y métricas. Incluye un rol **Super Admin** para administración global.
+
+El proyecto está organizado como un **monorepo** con frontend y backend separados, autenticación con JWT y Google OAuth, verificación de identidad via RENIEC, tres modos de asignación de trabajo, sistema de notificaciones en tiempo real, auditoría completa y subida de avatares con Cloudinary.
+
+---
+
+## 🏗️ Tecnologías
+
+<table>
+<tr>
+<td width="50%">
 
 ### Frontend
-
-- React con Vite
-- Tailwind CSS
-- React Router
+- React 18 con Vite
+- Tailwind CSS 3
+- React Router 6
 - Axios
+- Framer Motion
+- Lucide React (iconos)
+- Radix UI (Dialog, Dropdown)
+- Sonner (toasts)
+- Google OAuth (`@react-oauth/google`)
+
+</td>
+<td width="50%">
 
 ### Backend
+- Node.js ≥ 20
+- Express 4
+- Prisma 6 + PostgreSQL (Neon)
+- JWT + Google Auth Library
+- Bcrypt + Zod
+- Cloudinary (avatares)
+- Multer (upload)
+- Helmet, CORS, Rate Limit
+- Winston + Morgan (logs)
 
-- Node.js
-- Express
-- Prisma
-- PostgreSQL con Neon
-- dotenv
-- cors
-- helmet
-- morgan
-- bcrypt
-- JWT
-- Zod
-- express-rate-limit
+</td>
+</tr>
+</table>
 
-## Estructura
+---
+
+## 📁 Estructura del proyecto
 
 ```text
 Tecnilink/
-  client/
-  server/
-    prisma/
-    src/
-      config/
-      controllers/
-      middlewares/
-      routes/
-      services/
-      utils/
-  README.md
-  .gitignore
+├── client/                    # Frontend React + Vite
+│   └── src/
+│       ├── components/        # Componentes reutilizables
+│       │   └── ui/            # Componentes base (Button, Card, Dialog, etc.)
+│       ├── context/           # AuthContext (manejo de sesión)
+│       ├── layouts/           # PublicLayout, PrivateLayout
+│       ├── pages/             # Todas las páginas de la app
+│       ├── routes/            # Router y ProtectedRoute
+│       ├── services/          # API client (Axios)
+│       └── utils/             # Utilidades compartidas
+├── server/                    # Backend Express
+│   ├── prisma/                # Schema, migraciones y seed
+│   └── src/
+│       ├── config/            # env.js, prisma.js, logger.js, cloudinary.js
+│       ├── controllers/       # Controladores por recurso
+│       ├── middlewares/       # Auth, roles, upload, validación, errores
+│       ├── routes/            # Definición de rutas
+│       ├── schemas/           # Validación con Zod
+│       ├── services/          # Lógica de negocio
+│       └── utils/             # Helpers (paginación, errores, async)
+├── load-tests/                # Scripts k6 para pruebas de carga
+├── docs/                      # Documentación adicional
+└── LandingpageTecnilink/      # Landing page estática
 ```
 
-## Variables de entorno
+---
 
-En `server`, crea un archivo `.env` tomando como base `.env.example`:
+## ⚙️ Variables de entorno
+
+### Backend (`server/.env`)
+
+Crea un archivo `.env` en `server/` basándote en `.env.example`:
 
 ```env
+# Servidor
 PORT=4000
 NODE_ENV=development
 FRONTEND_URL=http://localhost:5173
+
+# Base de datos
 DATABASE_URL="postgresql://USER:PASSWORD@HOST.neon.tech/DBNAME?sslmode=require"
-JWT_SECRET="cambia-este-valor-por-una-clave-larga-y-segura"
+
+# Autenticación
+JWT_SECRET="clave-larga-y-segura-minimo-16-caracteres"
 JWT_EXPIRES_IN=2h
 BCRYPT_SALT_ROUNDS=10
+
+# Google OAuth
+GOOGLE_CLIENT_ID="tu-google-client-id.apps.googleusercontent.com"
+
+# RENIEC / Factiliza (verificación de DNI para técnicos)
+RENIEC_API_BASE_URL=https://api.factiliza.com/v1/dni/info
+RENIEC_API_TOKEN="tu-token-de-factiliza"
+
+# Cloudinary (avatares de perfil)
+CLOUDINARY_CLOUD_NAME="tu-cloud-name"
+CLOUDINARY_API_KEY="tu-api-key"
+CLOUDINARY_API_SECRET="tu-api-secret"
+
+# Rate Limiting
 LOGIN_RATE_LIMIT_WINDOW_MS=600000
 LOGIN_RATE_LIMIT_MAX=5
 RATE_LIMIT_WINDOW_MS=900000
 RATE_LIMIT_MAX=300
+
+# Logs
 ENABLE_REQUEST_LOGS=true
 ```
 
-Para obtener `DATABASE_URL` en Neon:
-
-1. Crea un proyecto en Neon.
-2. Entra a `Connection Details`.
-3. Selecciona `Prisma` o `Node.js` como formato de conexion.
-4. Copia la URL PostgreSQL.
-5. Asegurate de conservar `?sslmode=require` al final de la URL.
-
-`FRONTEND_URL` acepta una o varias URLs separadas por coma. Ejemplo para desarrollo:
+`FRONTEND_URL` acepta múltiples URLs separadas por coma:
 
 ```env
 FRONTEND_URL=http://localhost:5173,http://127.0.0.1:5173
 ```
 
-`JWT_SECRET` debe ser una clave larga y segura. El backend valida las variables de entorno al arrancar y se detiene si falta una variable critica.
-
-El frontend usa por defecto `http://localhost:4000/api`. Si necesitas cambiarlo, crea `client/.env`:
+### Frontend (`client/.env`)
 
 ```env
 VITE_API_URL=http://localhost:4000/api
+VITE_GOOGLE_CLIENT_ID="tu-google-client-id.apps.googleusercontent.com"
 ```
 
-## Instalacion
+---
 
-Instala dependencias del backend:
+## 🚀 Instalación y ejecución
 
 ```bash
+# 1. Instalar dependencias del backend
 cd server
 npm install
-```
 
-Instala dependencias del frontend:
-
-```bash
-cd client
+# 2. Instalar dependencias del frontend
+cd ../client
 npm install
-```
 
-## Base de datos
-
-Genera el cliente Prisma:
-
-```bash
-cd server
+# 3. Generar cliente Prisma
+cd ../server
 npm run prisma:generate
-```
 
-Crea y aplica la migracion inicial en Neon:
-
-```bash
-cd server
+# 4. Aplicar migraciones
 npm run prisma:migrate -- --name init
-```
 
-Ejecuta el seed inicial:
-
-```bash
-cd server
+# 5. Ejecutar seed inicial
 npm run prisma:seed
+
+# 6. Iniciar backend (terminal 1)
+npm run dev
+
+# 7. Iniciar frontend (terminal 2)
+cd ../client
+npm run dev
 ```
 
-Abre Prisma Studio:
+| Servicio | URL |
+|----------|-----|
+| Backend API | `http://localhost:4000` |
+| Frontend | `http://localhost:5173` |
+| Prisma Studio | `npm run prisma:studio` en `server/` |
 
-```bash
-cd server
-npm run prisma:studio
-```
+---
 
-El seed crea:
+## 👥 Roles del sistema
 
-- 1 administrador
-- 2 tecnicos
-- 3 clientes
-- 4 categorias
-- 10 solicitudes tecnicas
-- comentarios de ejemplo
+| Rol | Descripción |
+|-----|-------------|
+| `SUPER_ADMIN` | Administración global: métricas, gestión de admins y auditoría |
+| `ADMIN` | Gestiona categorías, asigna técnicos, configura modos de asignación |
+| `TECNICO` | Atiende solicitudes asignadas, toma trabajos disponibles |
+| `CLIENTE` | Crea y da seguimiento a solicitudes de soporte |
 
-Todos los usuarios del seed usan la contrasena temporal:
+---
 
-```text
-Tecnilink123!
-```
+## 🔐 Autenticación
 
-## Autenticacion
-
-El registro publico siempre crea usuarios con rol `CLIENTE`. No se acepta un rol enviado desde el cliente para evitar registros publicos como `ADMIN` o `TECNICO`.
-
-### Registrar usuario
+### Registro de cliente
 
 ```bash
 curl -X POST http://localhost:4000/api/auth/register \
   -H "Content-Type: application/json" \
-  -d "{\"name\":\"Cliente Demo\",\"email\":\"cliente.demo@tecnilink.test\",\"password\":\"Tecnilink123!\"}"
+  -d '{"name":"Cliente Demo","email":"cliente@test.com","password":"Tecnilink123!"}'
 ```
 
-Respuesta exitosa: `201 Created`.
+El registro público siempre crea usuarios con rol `CLIENTE`.
 
-### Iniciar sesion
+### Registro de técnico (con verificación RENIEC)
+
+```bash
+curl -X POST http://localhost:4000/api/auth/register-technician \
+  -H "Content-Type: application/json" \
+  -d '{"name":"Técnico","email":"tecnico@test.com","password":"Tecnilink123!","dni":"12345678"}'
+```
+
+El DNI se valida contra la API de RENIEC/Factiliza. El nombre se toma automáticamente de la respuesta oficial de RENIEC. Este endpoint tiene rate limit propio (5 consultas/minuto).
+
+### Login tradicional
 
 ```bash
 curl -X POST http://localhost:4000/api/auth/login \
   -H "Content-Type: application/json" \
-  -d "{\"email\":\"cliente.demo@tecnilink.test\",\"password\":\"Tecnilink123!\"}"
+  -d '{"email":"cliente@test.com","password":"Tecnilink123!"}'
 ```
 
-Respuesta exitosa: `200 OK`, con un `token` JWT y los datos publicos del usuario.
+### Login con Google OAuth
 
-El login tiene un limite por IP configurado con:
-
-```env
-LOGIN_RATE_LIMIT_WINDOW_MS=600000
-LOGIN_RATE_LIMIT_MAX=5
+```bash
+curl -X POST http://localhost:4000/api/auth/google \
+  -H "Content-Type: application/json" \
+  -d '{"credential":"google-id-token"}'
 ```
+
+Si el usuario no existe, se crea automáticamente como `CLIENTE`. Si ya existe, se vincula el `googleId`.
 
 ### Consultar usuario autenticado
 
-Reemplaza `TOKEN_AQUI` por el token recibido en login:
-
 ```bash
 curl http://localhost:4000/api/auth/me \
-  -H "Authorization: Bearer TOKEN_AQUI"
-```
-
-Respuesta exitosa: `200 OK`, con los datos del usuario autenticado.
-
-### Control de roles
-
-Las rutas protegidas usan `authenticateToken` para validar el JWT. Cuando una ruta debe limitarse por rol, se agrega `authorizeRoles`.
-
-Ejemplo para una ruta futura solo de administradores:
-
-```js
-router.get('/admin-only', authenticateToken, authorizeRoles('ADMIN'), controller);
-```
-
-Si el token falta o no es valido, la API responde `401`. Si el usuario autenticado no tiene el rol requerido, responde `403`.
-
-## Categorias
-
-Todas las rutas de categorias requieren token JWT.
-
-| Metodo | Ruta | Permiso |
-| --- | --- | --- |
-| GET | `/api/categories?page=1&limit=10` | ADMIN, CLIENTE, TECNICO |
-| POST | `/api/categories` | ADMIN |
-| PUT | `/api/categories/:id` | ADMIN |
-| DELETE | `/api/categories/:id` | ADMIN |
-
-`DELETE /api/categories/:id` hace borrado logico con `isActive=false`.
-
-Crear categoria:
-
-```bash
-curl -X POST http://localhost:4000/api/categories \
-  -H "Authorization: Bearer TOKEN_ADMIN" \
-  -H "Content-Type: application/json" \
-  -d "{\"name\":\"Soporte remoto\",\"description\":\"Atencion tecnica por canales remotos.\"}"
-```
-
-Listar categorias activas:
-
-```bash
-curl "http://localhost:4000/api/categories?page=1&limit=10" \
   -H "Authorization: Bearer TOKEN"
 ```
 
-## Solicitudes tecnicas
+### Usuarios del seed
 
-Todas las rutas de solicitudes requieren token JWT.
+El seed crea usuarios de prueba. Todos usan la contraseña: `Tecnilink123!`
 
-| Metodo | Ruta | Permiso |
-| --- | --- | --- |
-| GET | `/api/requests?page=1&limit=10` | ADMIN ve todas, CLIENTE ve propias, TECNICO ve asignadas |
-| POST | `/api/requests` | CLIENTE |
-| GET | `/api/requests/:id` | Usuario relacionado o ADMIN |
-| PUT | `/api/requests/:id` | ADMIN o CLIENTE propietario si esta PENDIENTE |
-| PATCH | `/api/requests/:id/assign` | ADMIN |
-| PATCH | `/api/requests/:id/status` | TECNICO asignado |
-| DELETE | `/api/requests/:id` | ADMIN o CLIENTE propietario si esta PENDIENTE |
+| Rol | Datos del seed |
+|-----|---------------|
+| SUPER_ADMIN | 1 super administrador |
+| ADMIN | 1 administrador |
+| TECNICO | 2 técnicos |
+| CLIENTE | 3 clientes |
 
-Filtros disponibles en listados:
+También crea 4 categorías, 10 solicitudes y comentarios de ejemplo.
+
+---
+
+## 📂 API — Categorías
+
+Todas requieren token JWT.
+
+| Método | Ruta | Permiso |
+|--------|------|---------|
+| `GET` | `/api/categories?page=1&limit=10` | ADMIN, CLIENTE, TECNICO |
+| `POST` | `/api/categories` | ADMIN |
+| `PUT` | `/api/categories/:id` | ADMIN |
+| `DELETE` | `/api/categories/:id` | ADMIN |
+
+`DELETE` realiza borrado lógico (`isActive=false`).
+
+---
+
+## 📋 API — Solicitudes técnicas
+
+Todas requieren token JWT.
+
+| Método | Ruta | Permiso |
+|--------|------|---------|
+| `GET` | `/api/requests?page=1&limit=10` | ADMIN ve todas · CLIENTE ve propias · TECNICO ve asignadas |
+| `POST` | `/api/requests` | CLIENTE |
+| `GET` | `/api/requests/:id` | Usuario relacionado o ADMIN |
+| `PUT` | `/api/requests/:id` | ADMIN o CLIENTE propietario (si PENDIENTE/DISPONIBLE) |
+| `PATCH` | `/api/requests/:id/assign` | ADMIN |
+| `PATCH` | `/api/requests/:id/status` | TECNICO asignado |
+| `DELETE` | `/api/requests/:id` | ADMIN o CLIENTE propietario (si PENDIENTE/DISPONIBLE) |
+| `GET` | `/api/requests/technicians/list` | ADMIN, SUPER_ADMIN |
+| `GET` | `/api/requests/available` | TECNICO |
+| `POST` | `/api/requests/:id/take` | TECNICO |
+| `POST` | `/api/requests/:id/release` | TECNICO |
+
+### Filtros disponibles
 
 ```text
-status=PENDIENTE|EN_PROCESO|ATENDIDA|CANCELADA
+status=PENDIENTE|DISPONIBLE|EN_PROCESO|ATENDIDA|CANCELADA
 priority=BAJA|MEDIA|ALTA
 categoryId=ID_DE_CATEGORIA
 ```
 
-Ejemplo:
+### Estados del flujo
 
-```bash
-curl "http://localhost:4000/api/requests?page=1&limit=10&status=PENDIENTE&priority=ALTA" \
-  -H "Authorization: Bearer TOKEN"
+```text
+PENDIENTE ──→ EN_PROCESO ──→ ATENDIDA
+    │              │
+    ▼              ▼
+CANCELADA    CANCELADA (solo admin)
+
+DISPONIBLE ──→ EN_PROCESO ──→ ATENDIDA
+    │              │
+    ▼              ▼
+CANCELADA    DISPONIBLE (release)
 ```
 
-Crear solicitud como CLIENTE:
+- **PENDIENTE**: Estado inicial en modo `MANUAL`. Admin asigna técnico.
+- **DISPONIBLE**: Estado inicial en modo `SELF_ASSIGNMENT`. Técnicos toman trabajos.
+- **EN_PROCESO**: Técnico asignado trabajando en el caso.
+- **ATENDIDA**: Caso resuelto.
+- **CANCELADA**: Caso cancelado por cliente o admin.
 
-```bash
-curl -X POST http://localhost:4000/api/requests \
-  -H "Authorization: Bearer TOKEN_CLIENTE" \
-  -H "Content-Type: application/json" \
-  -d "{\"title\":\"Laptop no enciende\",\"description\":\"El equipo no responde al boton de encendido.\",\"priority\":\"ALTA\",\"categoryId\":\"ID_CATEGORIA\"}"
-```
+---
 
-Asignar tecnico como ADMIN:
+## 💬 API — Comentarios
 
-```bash
-curl -X PATCH http://localhost:4000/api/requests/ID_SOLICITUD/assign \
-  -H "Authorization: Bearer TOKEN_ADMIN" \
-  -H "Content-Type: application/json" \
-  -d "{\"technicianId\":\"ID_TECNICO\"}"
-```
+| Método | Ruta | Permiso |
+|--------|------|---------|
+| `GET` | `/api/requests/:id/comments?page=1&limit=10` | ADMIN, cliente propietario, técnico asignado |
+| `POST` | `/api/requests/:id/comments` | ADMIN, cliente propietario, técnico asignado |
 
-Actualizar estado como TECNICO asignado:
+---
 
-```bash
-curl -X PATCH http://localhost:4000/api/requests/ID_SOLICITUD/status \
-  -H "Authorization: Bearer TOKEN_TECNICO" \
-  -H "Content-Type: application/json" \
-  -d "{\"status\":\"ATENDIDA\"}"
-```
+## 👤 API — Perfil
 
-Cancelar solicitud pendiente:
+Todas requieren token JWT.
 
-```bash
-curl -X DELETE http://localhost:4000/api/requests/ID_SOLICITUD \
-  -H "Authorization: Bearer TOKEN_CLIENTE"
-```
+| Método | Ruta | Permiso |
+|--------|------|---------|
+| `GET` | `/api/profile/me` | Autenticado |
+| `PATCH` | `/api/profile/me` | Autenticado |
+| `POST` | `/api/profile/avatar` | Autenticado |
 
-## Comentarios
+**Campos editables por rol:**
 
-Solo usuarios relacionados con la solicitud pueden comentar o listar comentarios. ADMIN puede hacerlo en cualquier solicitud.
+- **CLIENTE / ADMIN**: `name`, `phone`, `bio`
+- **TECNICO**: `phone`, `bio`, `specialty`, `experienceYears`, `serviceArea` (no puede editar `name` porque es dato oficial de RENIEC)
 
-| Metodo | Ruta | Permiso |
-| --- | --- | --- |
-| GET | `/api/requests/:id/comments?page=1&limit=10` | ADMIN, cliente propietario o tecnico asignado |
-| POST | `/api/requests/:id/comments` | ADMIN, cliente propietario o tecnico asignado |
+El avatar se sube a **Cloudinary** mediante `multipart/form-data`.
 
-Crear comentario:
+Si un técnico tiene DNI verificado pero faltan datos de RENIEC (usuarios legacy), el perfil realiza un **backfill automático** consultando la API de RENIEC.
 
-```bash
-curl -X POST http://localhost:4000/api/requests/ID_SOLICITUD/comments \
-  -H "Authorization: Bearer TOKEN" \
-  -H "Content-Type: application/json" \
-  -d "{\"content\":\"Se reviso el caso y queda pendiente validacion.\"}"
-```
+---
 
-## Paginacion
+## 🔔 API — Notificaciones
 
-Todos los listados usan `page` y `limit`. `limit` tiene un maximo de `100`.
+Todas requieren token JWT.
 
-Respuesta de ejemplo:
+| Método | Ruta | Permiso |
+|--------|------|---------|
+| `GET` | `/api/notifications` | Autenticado |
+| `PUT` | `/api/notifications/read` | Autenticado |
+
+Las notificaciones se generan automáticamente cuando:
+- Se asigna automáticamente un trabajo a un técnico (modo `AUTO`)
+- Un trabajo queda disponible en la especialidad del técnico (modo `SELF_ASSIGNMENT`)
+- Un técnico libera un trabajo y vuelve a la cola
+- El motor de escalamiento sube la prioridad de un caso idle
+
+---
+
+## ⚡ API — Configuración de empresa
+
+| Método | Ruta | Permiso |
+|--------|------|---------|
+| `GET` | `/api/settings` | Autenticado |
+| `PUT` | `/api/settings` | ADMIN |
+
+### Modos de asignación
+
+| Modo | Comportamiento |
+|------|---------------|
+| `MANUAL` | Admin asigna técnicos manualmente. Las solicitudes inician en `PENDIENTE`. |
+| `SELF_ASSIGNMENT` | Las solicitudes inician en `DISPONIBLE`. Los técnicos toman y liberan trabajos. Incluye regla anti-cherry-picking con límite de trabajos activos simultáneos (`maxActiveJobs`). |
+| `AUTO` | El sistema asigna automáticamente al mejor técnico disponible según especialidad y carga de trabajo. |
+
+### Motor de auto-escalamiento
+
+El servidor ejecuta cada **5 minutos** un proceso en background que:
+1. Busca solicitudes en estado `DISPONIBLE` sin técnico por más de 30 minutos.
+2. Escala su prioridad (`BAJA → MEDIA → ALTA`).
+3. Notifica a todos los técnicos con la especialidad correspondiente.
+
+---
+
+## 🛡️ API — Super Admin
+
+Todas requieren token JWT con rol `SUPER_ADMIN`.
+
+| Método | Ruta | Descripción |
+|--------|------|-------------|
+| `GET` | `/api/superadmin/metrics` | Métricas globales de la plataforma |
+| `GET` | `/api/superadmin/admins` | Listar administradores |
+| `POST` | `/api/superadmin/admins` | Crear nuevo administrador |
+| `PATCH` | `/api/superadmin/admins/:id/deactivate` | Activar/desactivar administrador |
+| `GET` | `/api/superadmin/audit?page=1&limit=10` | Logs de auditoría paginados |
+
+### Acciones auditadas
+
+`LOGIN`, `REGISTER`, `CREATE_REQUEST`, `ASSIGN_REQUEST`, `STATUS_CHANGE`, `TAKE_REQUEST`, `RELEASE_REQUEST`.
+
+---
+
+## 📄 Paginación
+
+Todos los listados usan `page` y `limit` (máximo `100`).
 
 ```json
 {
@@ -330,121 +426,97 @@ Respuesta de ejemplo:
 }
 ```
 
-## Ejecucion
+---
 
-Inicia el backend:
+## 🖥️ Frontend — Rutas
 
-```bash
-cd server
-npm run dev
-```
+### Rutas públicas
 
-Inicia el frontend en otra terminal:
+| Ruta | Página |
+|------|--------|
+| `/` | Landing Page |
+| `/login` | Login (email/password + Google OAuth) |
+| `/register` | Registro (cliente o técnico con DNI) |
+| `/server-error` | Error del servidor |
+| `*` | 404 Not Found |
 
-```bash
-cd client
-npm run dev
-```
+### Rutas privadas
 
-El backend queda disponible en `http://localhost:4000`.
+| Ruta | Página | Permiso |
+|------|--------|---------|
+| `/dashboard` | Dashboard con métricas | Todos |
+| `/requests` | Listado de solicitudes | Todos |
+| `/requests/new` | Crear solicitud | CLIENTE |
+| `/requests/:id` | Detalle de solicitud | Relacionados o ADMIN |
+| `/requests/available` | Trabajos disponibles | TECNICO |
+| `/categories` | Gestión de categorías | ADMIN |
+| `/settings` | Configuración de empresa | ADMIN |
+| `/profile` | Ver perfil | Todos |
+| `/profile/edit` | Editar perfil + avatar | Todos |
+| `/superadmin/metrics` | Métricas globales | SUPER_ADMIN |
+| `/superadmin/admins` | Gestión de admins | SUPER_ADMIN |
+| `/superadmin/audit` | Logs de auditoría | SUPER_ADMIN |
+| `/unauthorized` | Acceso denegado | Autenticados |
 
-El frontend queda disponible en `http://localhost:5173`.
+### Componentes UI
 
-## Verificacion
+La interfaz usa Tailwind CSS con componentes locales estilo shadcn/ui:
 
-Prueba el endpoint de salud del backend:
+`Button` · `Input` · `Textarea` · `Card` · `Badge` · `Table` · `Dialog` · `Dropdown` · `Skeleton` · `Alert` · `Toasts (Sonner)` · `NotificationBell` · `GoogleAuthModal` · `NetworkBackground` · `StatusBadge` · `Pagination` · `EmptyState` · `LoadingState` · `PageHeader`
+
+El frontend guarda el JWT en `localStorage` con la clave `tecnilink_token`. Al recargar, `AuthContext` consulta `GET /api/auth/me` para restaurar la sesión.
+
+---
+
+## 🔒 Seguridad y estabilidad
+
+- **Helmet** para cabeceras de seguridad HTTP.
+- **CORS** validando `FRONTEND_URL`.
+- **Rate limit global** configurable por variables de entorno.
+- **Rate limit específico** para login (por IP) y consultas de DNI.
+- **Winston** para logs estructurados (`logs/combined.log`, `logs/error.log`).
+- **Morgan** para logs HTTP cuando `ENABLE_REQUEST_LOGS=true`.
+- **Middleware centralizado** para errores 400, 401, 403, 404, 409, 429, 500 y 503.
+- **Sanitización** de campos sensibles (`password`, `token`, `authorization`, `secret`) en logs.
+- **Validación con Zod** en todas las entradas de la API.
+- **Graceful shutdown** con `SIGINT`/`SIGTERM`, desconexión de Prisma y limpieza de intervalos.
+
+Los errores 500 responden con un mensaje genérico y `requestId`; el detalle queda en logs.
+
+---
+
+## ✅ Verificación
 
 ```bash
 curl http://localhost:4000/api/health
 ```
-
-Respuesta esperada:
 
 ```json
 {
   "status": "ok",
   "message": "Tecnilink API running",
   "uptime": 120.5,
-  "timestamp": "2026-05-18T00:00:00.000Z",
+  "timestamp": "2026-07-01T00:00:00.000Z",
   "environment": "development",
-  "database": {
-    "status": "up"
-  }
+  "database": { "status": "up" }
 }
 ```
 
-Si la API responde pero la base de datos no esta disponible, `status` sera `degraded` y `database.status` sera `down`.
+Si la base de datos no está disponible: `status: "degraded"`, `database.status: "down"`.
 
-Para verificar la base de datos:
+---
 
-1. Ejecuta migraciones con `npm run prisma:migrate -- --name init`.
-2. Ejecuta el seed con `npm run prisma:seed`.
-3. Abre Prisma Studio con `npm run prisma:studio`.
-4. Confirma que existan registros en `User`, `ServiceCategory`, `TechnicalRequest` y `RequestComment`.
+## 🧪 Pruebas de carga con k6
 
-Para verificar el frontend, abre `http://localhost:5173` y confirma que se muestra el estado devuelto por `GET /api/health`.
+Los scripts están en `load-tests/` y usan los usuarios del seed.
 
-## Seguridad y estabilidad
+### Instalación de k6
 
-El backend usa:
+- **Windows**: `winget install k6.k6`
+- **macOS**: `brew install k6`
+- **Linux**: [grafana.com/docs/k6](https://grafana.com/docs/k6/latest/set-up/install-k6/)
 
-- Helmet para cabeceras de seguridad.
-- CORS validando `FRONTEND_URL`.
-- Rate limit global configurable.
-- Rate limit especifico para login.
-- Winston para logs estructurados.
-- Morgan para logs HTTP cuando `ENABLE_REQUEST_LOGS=true`.
-- Middleware centralizado para errores 400, 401, 403, 404, 409, 429 y 500.
-
-Los errores 500 responden con un mensaje generico y `requestId`; el detalle real queda en logs. Los logs sanitizan campos sensibles como `password`, `token`, `authorization` y `secret`.
-
-Archivos de log:
-
-```text
-server/logs/combined.log
-server/logs/error.log
-```
-
-Para reducir ruido durante pruebas de carga:
-
-```env
-ENABLE_REQUEST_LOGS=false
-```
-
-Para modificar limites durante pruebas:
-
-```env
-RATE_LIMIT_WINDOW_MS=900000
-RATE_LIMIT_MAX=300
-LOGIN_RATE_LIMIT_WINDOW_MS=600000
-LOGIN_RATE_LIMIT_MAX=5
-```
-
-Para una prueba exploratoria puedes subir `RATE_LIMIT_MAX`. Para validar bloqueo, bajalo temporalmente y reinicia el backend.
-
-Verificar CORS con un origen permitido:
-
-```bash
-curl -I http://localhost:4000/api/health -H "Origin: http://localhost:5173"
-```
-
-Debe incluir:
-
-```text
-Access-Control-Allow-Origin: http://localhost:5173
-```
-
-## Pruebas de carga con k6
-
-Los scripts estan en `load-tests/` y usan los usuarios creados por el seed. Antes de ejecutarlos, aplica migraciones, ejecuta el seed e inicia el backend.
-
-Instalar k6:
-
-- Windows: `winget install k6.k6`
-- macOS: `brew install k6`
-- Linux: revisa `https://grafana.com/docs/k6/latest/set-up/install-k6/`
-
-Preparacion recomendada:
+### Preparación del `.env`
 
 ```env
 ENABLE_REQUEST_LOGS=false
@@ -452,106 +524,56 @@ RATE_LIMIT_MAX=50000
 LOGIN_RATE_LIMIT_MAX=1000
 ```
 
-Ejecutar smoke test:
+### Ejecución
 
 ```bash
+# Smoke test
 k6 run -e BASE_URL=http://localhost:4000 load-tests/smoke-test.js
-```
 
-Ejecutar prueba oficial con 50 usuarios:
-
-```bash
+# 50 usuarios virtuales
 k6 run -e BASE_URL=http://localhost:4000 load-tests/load-50-users.js
-```
 
-Ejecutar prueba oficial con 100 usuarios:
-
-```bash
+# 100 usuarios virtuales
 k6 run -e BASE_URL=http://localhost:4000 load-tests/load-100-users.js
-```
 
-Ejecutar prueba exploratoria con 1200 usuarios:
-
-```bash
+# 1200 usuarios (exploratoria)
 k6 run -e BASE_URL=http://localhost:4000 load-tests/load-1200-users.js
-```
 
-Ejecutar prueba de rate limit:
+# 90000 usuarios (stress)
+k6 run -e BASE_URL=http://localhost:4000 load-tests/load-90000-users.js
 
-```bash
+# 50000 requests (volumen)
+k6 run -e BASE_URL=http://localhost:4000 load-tests/load-50000-requests.js
+
+# Rate limit
 k6 run -e BASE_URL=http://localhost:4000 load-tests/rate-limit-test.js
 ```
 
-Metricas importantes:
+### Métricas clave
 
-- `checks`: validaciones exitosas.
-- `http_req_failed`: porcentaje de requests fallidos.
-- `http_req_duration`: latencia promedio, p90 y p95.
-- `http_reqs`: total de requests.
-- `vus` y `vus_max`: usuarios virtuales activos y maximos.
+| Métrica | Descripción |
+|---------|-------------|
+| `checks` | Validaciones exitosas |
+| `http_req_failed` | Porcentaje de requests fallidos |
+| `http_req_duration` | Latencia (promedio, p90, p95) |
+| `http_reqs` | Total de requests |
+| `vus` / `vus_max` | Usuarios virtuales activos / máximos |
 
-La prueba de 1200 usuarios es exploratoria. Para la entrega del 25%, presenta principalmente los resultados de 50 y 100 usuarios. La guia completa esta en `docs/PRUEBAS_CARGA.md`.
+La guía completa está en `docs/PRUEBAS_CARGA.md`.
 
-## Frontend funcional
+---
 
-Rutas publicas:
+## 📚 Documentación adicional
 
-| Ruta | Pagina |
-| --- | --- |
-| `/` | LandingPage |
-| `/login` | LoginPage |
-| `/register` | RegisterPage |
-| `/server-error` | ServerErrorPage |
-| `*` | NotFoundPage |
+| Documento | Ubicación |
+|-----------|-----------|
+| Guía de pruebas de carga | `docs/PRUEBAS_CARGA.md` |
+| Guía de despliegue en Render | `docs/guia_despliegue_git_render.md` |
+| Configuración de deploy en Render | `README_DEPLOY_RENDER.md` |
 
-Rutas privadas:
+---
 
-| Ruta | Pagina | Permiso |
-| --- | --- | --- |
-| `/dashboard` | DashboardPage | ADMIN, CLIENTE, TECNICO |
-| `/requests` | RequestsPage | ADMIN, CLIENTE, TECNICO |
-| `/requests/new` | CreateRequestPage | CLIENTE |
-| `/requests/:id` | RequestDetailPage | ADMIN, CLIENTE relacionado, TECNICO asignado |
-| `/categories` | CategoriesPage | ADMIN |
-| `/unauthorized` | UnauthorizedPage | Usuarios autenticados |
+## 📝 Licencia
 
-El frontend guarda el JWT en `localStorage` con la clave `tecnilink_token`. Al recargar la pagina, `AuthContext` consulta `GET /api/auth/me` para mantener la sesion.
-
-Para probar desde la interfaz:
-
-1. Ejecuta backend y frontend.
-2. Abre `http://localhost:5173`.
-3. Entra a `Registrarse` para crear un cliente.
-4. Inicia sesion en `/login`.
-5. Como CLIENTE, entra a `Nueva solicitud`, selecciona una categoria activa y crea el caso.
-6. Como ADMIN, entra a `Categorias` para crear, editar o desactivar categorias.
-7. Como TECNICO, entra a `Solicitudes` para ver asignaciones y actualizar estado desde el detalle.
-
-Comandos:
-
-```bash
-cd server
-npm run dev
-```
-
-```bash
-cd client
-npm run dev
-```
-
-## Interfaz moderna
-
-La interfaz usa Tailwind CSS con componentes locales tipo shadcn/ui:
-
-- Button
-- Input
-- Card
-- Badge
-- Table
-- Dialog
-- Dropdown
-- Skeleton
-- Alert
-- Toasts con Sonner
-
-Las acciones peligrosas como cancelar solicitudes o desactivar categorias muestran un dialogo de confirmacion. Los errores se muestran con alerts y toasts, los estados de carga usan skeletons y los listados sin datos usan estados vacios claros.
+Proyecto académico — Uso educativo.
+]]>

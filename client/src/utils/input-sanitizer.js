@@ -109,10 +109,6 @@ export const validateEmail = (email) => {
   return '';
 };
 
-/**
- * Validate password complexity.
- * Returns an array of human-readable error strings.
- */
 export const validatePassword = (password) => {
   const errors = [];
 
@@ -129,20 +125,8 @@ export const validatePassword = (password) => {
     errors.push('La contrasena no debe superar 72 caracteres');
   }
 
-  if (!/[a-z]/.test(password)) {
-    errors.push('Debe incluir al menos una letra minuscula');
-  }
-
-  if (!/[A-Z]/.test(password)) {
-    errors.push('Debe incluir al menos una letra mayuscula');
-  }
-
   if (!/\d/.test(password)) {
     errors.push('Debe incluir al menos un numero');
-  }
-
-  if (!/[!@#$%^&*()_+\-=[\]{};':"\\|,.<>/?`~]/.test(password)) {
-    errors.push('Debe incluir al menos un caracter especial');
   }
 
   return errors;

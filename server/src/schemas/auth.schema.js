@@ -29,20 +29,8 @@ const passwordSchema = z
       .min(8, 'La contrasena debe tener al menos 8 caracteres')
       .max(72, 'La contrasena no debe superar 72 caracteres')
       .refine(
-        (value) => /[a-z]/.test(value),
-        'La contrasena debe incluir al menos una letra minuscula',
-      )
-      .refine(
-        (value) => /[A-Z]/.test(value),
-        'La contrasena debe incluir al menos una letra mayuscula',
-      )
-      .refine(
         (value) => /\d/.test(value),
         'La contrasena debe incluir al menos un numero',
-      )
-      .refine(
-        (value) => /[!@#$%^&*()_+\-=[\]{};':"\\|,.<>/?`~]/.test(value),
-        'La contrasena debe incluir al menos un caracter especial',
       )
       .refine(
         (value) => !/[\x00-\x1F\x7F]/.test(value),

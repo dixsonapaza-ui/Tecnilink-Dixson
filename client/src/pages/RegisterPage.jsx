@@ -118,10 +118,8 @@ export const RegisterPage = () => {
   };
 
   const hasMinLength = form.password.length >= 8;
-  const hasLowerCase = /[a-z]/.test(form.password);
-  const hasUpperCase = /[A-Z]/.test(form.password);
-  const hasSpecialChar = /[!@#$%^&*(),.?":{}|<>]/.test(form.password);
-  const isPasswordValid = hasMinLength && hasLowerCase && hasUpperCase && hasSpecialChar;
+  const hasNumber = /\d/.test(form.password);
+  const isPasswordValid = hasMinLength && hasNumber;
 
   if (isAuthenticated) {
     return <Navigate to="/dashboard" replace />;
@@ -400,9 +398,7 @@ export const RegisterPage = () => {
                   >
                     {[
                       { check: hasMinLength, label: 'Minimo 8 caracteres' },
-                      { check: hasLowerCase, label: 'Al menos una letra minuscula' },
-                      { check: hasUpperCase, label: 'Al menos una letra mayuscula' },
-                      { check: hasSpecialChar, label: 'Al menos un caracter especial' },
+                      { check: hasNumber, label: 'Al menos un numero' },
                     ].map(({ check, label }) => (
                       <motion.div
                         key={label}
