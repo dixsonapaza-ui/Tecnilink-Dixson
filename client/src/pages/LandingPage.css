@@ -312,10 +312,84 @@
   }
 
   .hero {
+    position: relative;
     padding: 80px 0 60px;
     min-height: calc(100vh - 64px);
     display: flex;
     align-items: center;
+    color: #ffffff;
+    overflow: hidden;
+  }
+
+  .relative-z-10 {
+    position: relative;
+    z-index: 10;
+  }
+
+  .hero-video-bg {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 0;
+    overflow: hidden;
+  }
+
+  .hero-video {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  .hero-video-overlay {
+    position: absolute;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.4);
+    z-index: 1;
+  }
+
+  @media (max-width: 768px) {
+    .hero-video {
+      display: none;
+    }
+    .hero-video-bg {
+      background-image: url('https://res.cloudinary.com/db06utjtq/video/upload/f_webp,q_auto,w_1920,c_fill/v1782883048/Landingpagedemo1_slo7aa.jpg');
+      background-size: cover;
+      background-position: center;
+    }
+  }
+
+  .hero .gradient-text {
+    background: linear-gradient(135deg, #fef08a, #fbbf24);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  .hero .badge {
+    background: rgba(255, 255, 255, 0.12);
+    border: 1px solid rgba(255, 255, 255, 0.25);
+    color: #f8fafc;
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+  }
+
+  .hero .trust-badge {
+    background: rgba(255, 255, 255, 0.08);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    color: #f1f5f9;
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+  }
+
+  .hero .trust-badge:hover {
+    border-color: #fbbf24;
+    background: rgba(255, 255, 255, 0.15);
+  }
+
+  .hero .trust-badge svg {
+    color: #fbbf24;
   }
 
   .hero-grid {
@@ -337,18 +411,19 @@
     line-height: 1.1;
     letter-spacing: -1.5px;
     margin: 0;
+    color: #ffffff;
   }
 
   .hero-description {
     font-size: 17px;
-    color: var(--gray);
+    color: #e2e8f0;
     line-height: 1.7;
     max-width: 520px;
     margin: 0;
   }
 
   .hero-description strong {
-    color: var(--dark);
+    color: #ffffff;
   }
 
   .hero-buttons {
@@ -403,6 +478,7 @@
     transform-style: preserve-3d;
     position: relative;
     z-index: 2;
+    color: var(--dark);
   }
 
   .service-card:hover {

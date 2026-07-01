@@ -43,6 +43,17 @@ export const ProfileEditPage = () => {
     setForm((prev) => ({ ...prev, [name]: value }));
   };
 
+  const handlePhoneChange = (e) => {
+    const { value } = e.target;
+    // Allow numbers, spaces, hyphens, and a single leading '+'
+    const sanitized = value.replace(/[^\d\s\-+]/g, '');
+    let finalValue = sanitized;
+    if (sanitized.includes('+')) {
+      finalValue = (sanitized.startsWith('+') ? '+' : '') + sanitized.replace(/\+/g, '');
+    }
+    setForm((prev) => ({ ...prev, phone: finalValue }));
+  };
+
   const handleAvatarChange = async (e) => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -88,21 +99,72 @@ export const ProfileEditPage = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
-    setIsSubmitting(true);
 
+    // Frontend validations
+    if (form.phone) {
+      const cleanPhone = form.phone.trim();
+      const phoneRegex = /^\+?[0-9\s\-]{9,15}$/;
+      if (!phoneRegex.test(cleanPhone)) {
+        setError('El telefono debe tener entre 9 y 15 digitos (se permiten espacios, guiones y el simbolo + al inicio).');
+        toast.error('Numero de telefono invalido');
+        return;
+      }
+    }
+
+    if (form.bio && form.bio.trim().length > 500) {
+      setError('La biografia no debe superar los 500 caracteres.');
+      toast.error('Biografia demasiado larga');
+      return;
+    }
+
+    if (isTech) {
+      if (form.specialty && form.specialty.trim().length > 100) {
+        setError('La especialidad no debe superar los 100 caracteres.');
+        toast.error('Especialidad demasiado larga');
+        return;
+      }
+
+      if (form.experienceYears !== '') {
+        const years = Number(form.experienceYears);
+        if (isNaN(years) || years < 0 || years > 50) {
+          setError('Los anos de experiencia deben estar entre 0 y 50.');
+          toast.error('Anos de experiencia invalidos');
+          return;
+        }
+      }
+
+      if (form.serviceArea && form.serviceArea.trim().length > 150) {
+        setError('La zona de cobertura no debe superar los 150 caracteres.');
+        toast.error('Zona de cobertura demasiado larga');
+        return;
+      }
+    } else {
+      if (!form.name || form.name.trim().length < 2) {
+        setError('El nombre debe tener al menos 2 caracteres.');
+        toast.error('Nombre demasiado corto');
+        return;
+      }
+      if (form.name.trim().length > 100) {
+        setError('El nombre no debe superar los 100 caracteres.');
+        toast.error('Nombre demasiado largo');
+        return;
+      }
+    }
+
+    setIsSubmitting(true);
     try {
       const payload = isTech
         ? {
-            phone: form.phone,
-            bio: form.bio,
-            specialty: form.specialty,
+            phone: form.phone ? form.phone.trim() : null,
+            bio: form.bio ? form.bio.trim() : null,
+            specialty: form.specialty ? form.specialty.trim() : null,
             experienceYears: form.experienceYears ? Number(form.experienceYears) : null,
-            serviceArea: form.serviceArea,
+            serviceArea: form.serviceArea ? form.serviceArea.trim() : null,
           }
         : {
-            name: form.name,
-            phone: form.phone,
-            bio: form.bio,
+            name: form.name.trim(),
+            phone: form.phone ? form.phone.trim() : null,
+            bio: form.bio ? form.bio.trim() : null,
           };
 
       const res = await updateProfileMe(payload);
@@ -227,14 +289,18 @@ export const ProfileEditPage = () => {
 
             {/* Phone */}
             <div className="sm:col-span-2">
-              <label className="block text-sm font-medium text-slate-700">Telefono de contacto</label>
+              <div className="flex justify-between items-center">
+                <label className="block text-sm font-medium text-slate-700">Telefono de contacto</label>
+                <span className="text-xs text-slate-400">{(form.phone || '').length} / 15</span>
+              </div>
               <div className="relative mt-2">
                 <Phone className="pointer-events-none absolute left-3 top-1/2 h-4.5 w-4.5 -translate-y-1/2 text-slate-400" />
                 <Input
                   name="phone"
                   value={form.phone}
-                  onChange={handleChange}
+                  onChange={handlePhoneChange}
                   placeholder="Ej: +51 987654321"
+                  maxLength={15}
                   className="pl-10 focus:ring-2 focus:ring-slate-950/5"
                 />
               </div>
@@ -242,12 +308,16 @@ export const ProfileEditPage = () => {
 
             {/* Bio */}
             <div className="sm:col-span-2">
-              <label className="block text-sm font-medium text-slate-700">Biografia / Presentacion</label>
+              <div className="flex justify-between items-center">
+                <label className="block text-sm font-medium text-slate-700">Biografia / Presentacion</label>
+                <span className="text-xs text-slate-400">{(form.bio || '').length} / 500</span>
+              </div>
               <textarea
                 name="bio"
                 value={form.bio}
                 onChange={handleChange}
                 placeholder="Cuenta brevemente sobre ti..."
+                maxLength={500}
                 rows={4}
                 className="mt-2 block w-full rounded-xl border border-slate-200 bg-white px-3.5 py-2.5 text-sm text-slate-950 placeholder-slate-400 shadow-sm focus:border-slate-950 focus:outline-none focus:ring-2 focus:ring-slate-950/5"
               />
@@ -257,7 +327,10 @@ export const ProfileEditPage = () => {
             {isTech && (
               <>
                 <div>
-                  <label className="block text-sm font-medium text-slate-700">Especialidad</label>
+                  <div className="flex justify-between items-center">
+                    <label className="block text-sm font-medium text-slate-700">Especialidad</label>
+                    <span className="text-xs text-slate-400">{(form.specialty || '').length} / 100</span>
+                  </div>
                   <div className="relative mt-2">
                     <Award className="pointer-events-none absolute left-3 top-1/2 h-4.5 w-4.5 -translate-y-1/2 text-slate-400" />
                     <Input
@@ -265,6 +338,7 @@ export const ProfileEditPage = () => {
                       value={form.specialty}
                       onChange={handleChange}
                       placeholder="Ej: Lavadoras, Electronica"
+                      maxLength={100}
                       className="pl-10 focus:ring-2 focus:ring-slate-950/5"
                     />
                   </div>
@@ -281,13 +355,17 @@ export const ProfileEditPage = () => {
                       onChange={handleChange}
                       placeholder="Ej: 5"
                       min={0}
+                      max={50}
                       className="pl-10 focus:ring-2 focus:ring-slate-950/5"
                     />
                   </div>
                 </div>
 
                 <div className="sm:col-span-2">
-                  <label className="block text-sm font-medium text-slate-700">Zona de atencion / cobertura</label>
+                  <div className="flex justify-between items-center">
+                    <label className="block text-sm font-medium text-slate-700">Zona de atencion / cobertura</label>
+                    <span className="text-xs text-slate-400">{(form.serviceArea || '').length} / 150</span>
+                  </div>
                   <div className="relative mt-2">
                     <MapPin className="pointer-events-none absolute left-3 top-1/2 h-4.5 w-4.5 -translate-y-1/2 text-slate-400" />
                     <Input
@@ -295,6 +373,7 @@ export const ProfileEditPage = () => {
                       value={form.serviceArea}
                       onChange={handleChange}
                       placeholder="Ej: Arequipa Metropolitana, Yanahuara"
+                      maxLength={150}
                       className="pl-10 focus:ring-2 focus:ring-slate-950/5"
                     />
                   </div>

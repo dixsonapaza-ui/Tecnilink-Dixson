@@ -9,6 +9,9 @@ import {
   updateAssignedRequestStatus,
   updateRequest,
   getActiveTechnicians,
+  listAvailableRequestsForTechnician,
+  takeRequest,
+  releaseRequest,
 } from '../services/request.service.js';
 
 export const indexRequests = async (req, res) => {
@@ -90,5 +93,26 @@ export const listTechnicians = async (req, res) => {
   res.status(200).json({
     success: true,
     technicians,
+  });
+};
+
+export const indexAvailableRequests = async (req, res) => {
+  const result = await listAvailableRequestsForTechnician(req.user, req.query);
+  res.status(200).json(result);
+};
+
+export const takeRequestJob = async (req, res) => {
+  const request = await takeRequest(req.user, req.params.id);
+  res.status(200).json({
+    message: 'Trabajo aceptado y asignado correctamente',
+    request,
+  });
+};
+
+export const releaseRequestJob = async (req, res) => {
+  const request = await releaseRequest(req.user, req.params.id);
+  res.status(200).json({
+    message: 'Trabajo liberado y devuelto a la cola',
+    request,
   });
 };

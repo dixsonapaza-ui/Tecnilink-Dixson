@@ -17,6 +17,8 @@ import { requestContextMiddleware } from './middlewares/request-context.middlewa
 import { requestRoutes } from './routes/request.routes.js';
 import { superadminRoutes } from './routes/superadmin.routes.js';
 import { profileRoutes } from './routes/profile.routes.js';
+import { settingsRoutes } from './routes/settings.routes.js';
+import { notificationRoutes } from './routes/notification.routes.js';
 import { AppError } from './utils/app-error.js';
 
 const app = express();
@@ -75,6 +77,8 @@ app.use('/api/categories', categoryRoutes);
 app.use('/api/requests', requestRoutes);
 app.use('/api/superadmin', superadminRoutes);
 app.use('/api/profile', profileRoutes);
+app.use('/api/settings', settingsRoutes);
+app.use('/api/notifications', notificationRoutes);
 
 app.use(notFoundMiddleware);
 app.use(errorMiddleware);

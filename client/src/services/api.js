@@ -182,4 +182,42 @@ export const getTechniciansList = async () => {
   return response.data;
 };
 
+// System/Company Settings
+export const getSettings = async () => {
+  const response = await api.get('/settings');
+  return response.data;
+};
+
+export const updateSettings = async (payload) => {
+  const response = await api.put('/settings', payload);
+  return response.data;
+};
+
+// Available requests for Technicians
+export const getAvailableRequests = async (params = {}) => {
+  const response = await api.get('/requests/available', { params });
+  return response.data;
+};
+
+export const takeRequest = async (requestId) => {
+  const response = await api.post(`/requests/${requestId}/take`);
+  return response.data;
+};
+
+export const releaseRequest = async (requestId) => {
+  const response = await api.post(`/requests/${requestId}/release`);
+  return response.data;
+};
+
+// Notifications
+export const getNotifications = async () => {
+  const response = await api.get('/notifications');
+  return response.data;
+};
+
+export const markNotificationsAsRead = async () => {
+  const response = await api.put('/notifications/read');
+  return response.data;
+};
+
 export { api };

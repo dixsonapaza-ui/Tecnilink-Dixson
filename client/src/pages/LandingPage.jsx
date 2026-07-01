@@ -1,5 +1,5 @@
 import { useEffect, useState, useRef } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, Navigate } from 'react-router-dom';
 import {
   Activity,
   HardHat,
@@ -26,6 +26,7 @@ import {
   Star,
   Rocket,
   Phone,
+  User,
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext.jsx';
 import { getHealthStatus } from '../services/api.js';
@@ -62,6 +63,11 @@ const Linkedin = (props) => (
 
 export const LandingPage = () => {
   const { isAuthenticated } = useAuth();
+
+  if (isAuthenticated) {
+    return <Navigate to="/dashboard" replace />;
+  }
+
   const [health, setHealth] = useState(null);
   const [healthError, setHealthError] = useState('');
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -82,6 +88,9 @@ export const LandingPage = () => {
       try {
         const data = await getHealthStatus();
         setHealth(data);
+        if (data && data.stats) {
+          window.tecnilinkStats = data.stats;
+        }
       } catch {
         setHealthError('No se pudo conectar con la API.');
       }
@@ -228,10 +237,11 @@ export const LandingPage = () => {
       (entries) => {
         entries.forEach((entry) => {
           if (entry.isIntersecting) {
-            animateCounter('technicians', 500);
-            animateCounter('services', 2500);
-            animateCounter('satisfaction', 98);
-            animateCounter('time', 15);
+            const stats = window.tecnilinkStats;
+            animateCounter('technicians', stats?.technicians ?? 500);
+            animateCounter('services', stats?.services ?? 2500);
+            animateCounter('satisfaction', stats?.satisfaction ?? 98);
+            animateCounter('time', stats?.time ?? 15);
             observer.unobserve(entry.target);
           }
         });
@@ -320,20 +330,17 @@ export const LandingPage = () => {
           </nav>
 
           <div className="header-actions">
-            <Link to="/login" className="nav-link-secondary">
-              <HardHat style={{ width: '16px', height: '16px' }} /> Soy Técnico
-            </Link>
             {isAuthenticated ? (
               <Link to="/dashboard" className="btn btn-primary btn-sm">
                 Dashboard
               </Link>
             ) : (
               <>
-                <Link to="/login" className="nav-link-secondary">
-                  <LogIn style={{ width: '16px', height: '16px' }} /> Iniciar sesión
+                <Link to="/login?role=CLIENTE" className="nav-link-secondary">
+                  <User style={{ width: '16px', height: '16px' }} /> Soy Cliente
                 </Link>
-                <Link to="/register" className="btn btn-primary btn-sm">
-                  Registrarse
+                <Link to="/login?role=TECNICO" className="btn btn-primary btn-sm">
+                  <HardHat style={{ width: '16px', height: '16px' }} /> Soy Técnico
                 </Link>
               </>
             )}
@@ -358,9 +365,6 @@ export const LandingPage = () => {
           <a href="#contacto" onClick={(e) => handleAnchorClick(e, '#contacto')}>
             Contacto
           </a>
-          <Link to="/login" className="nav-link-secondary" onClick={() => setMobileMenuOpen(false)}>
-            Soy Técnico
-          </Link>
           {isAuthenticated ? (
             <Link
               to="/dashboard"
@@ -373,19 +377,19 @@ export const LandingPage = () => {
           ) : (
             <>
               <Link
-                to="/login"
+                to="/login?role=CLIENTE"
                 className="nav-link-secondary"
                 onClick={() => setMobileMenuOpen(false)}
               >
-                Iniciar sesión
+                Soy Cliente
               </Link>
               <Link
-                to="/register"
+                to="/login?role=TECNICO"
                 className="btn btn-primary"
                 style={{ textAlign: 'center' }}
                 onClick={() => setMobileMenuOpen(false)}
               >
-                Registrarse
+                Soy Técnico
               </Link>
             </>
           )}
@@ -394,7 +398,27 @@ export const LandingPage = () => {
 
       {/* Hero Section */}
       <section className="hero" id="hero">
-        <div className="container hero-grid">
+        <div className="hero-video-bg">
+          <video
+            autoPlay
+            loop
+            muted
+            playsInline
+            poster="https://res.cloudinary.com/db06utjtq/video/upload/f_webp,q_auto,w_1920,c_fill/v1782883048/Landingpagedemo1_slo7aa.jpg"
+            className="hero-video"
+          >
+            <source
+              src="https://res.cloudinary.com/db06utjtq/video/upload/f_webm,vc_vp9,q_auto,w_1920,c_fill/v1782883048/Landingpagedemo1_slo7aa.mp4"
+              type="video/webm"
+            />
+            <source
+              src="https://res.cloudinary.com/db06utjtq/video/upload/f_mp4,vc_h264,q_auto,w_1920,c_fill/v1782883048/Landingpagedemo1_slo7aa.mp4"
+              type="video/mp4"
+            />
+          </video>
+          <div className="hero-video-overlay"></div>
+        </div>
+        <div className="container hero-grid relative-z-10">
           <div className="hero-content reveal-up">
             <div className="badge animate-pulse-slow">
               <span className="badge-dot"></span>
@@ -415,10 +439,10 @@ export const LandingPage = () => {
                 </Link>
               ) : (
                 <>
-                  <Link to="/register" className="btn btn-primary btn-lg">
+                  <Link to="/register?role=CLIENTE" className="btn btn-primary btn-lg">
                     Solicitar un servicio <ArrowRight style={{ width: '18px', height: '18px' }} />
                   </Link>
-                  <Link to="/login" className="btn btn-outline btn-lg">
+                  <Link to="/login?role=TECNICO" className="btn btn-outline btn-lg">
                     Ofrecer mis servicios
                   </Link>
                 </>

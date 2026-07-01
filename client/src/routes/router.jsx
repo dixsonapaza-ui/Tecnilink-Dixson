@@ -19,6 +19,8 @@ import { SuperAdminMetricsPage } from '../pages/SuperAdminMetricsPage.jsx';
 import { UnauthorizedPage } from '../pages/UnauthorizedPage.jsx';
 import { ProfilePage } from '../pages/ProfilePage.jsx';
 import { ProfileEditPage } from '../pages/ProfileEditPage.jsx';
+import { AvailableRequestsPage } from '../pages/AvailableRequestsPage.jsx';
+import { SettingsPage } from '../pages/SettingsPage.jsx';
 
 export const router = createBrowserRouter([
   {
@@ -71,6 +73,15 @@ export const router = createBrowserRouter([
             ],
           },
           {
+            element: <ProtectedRoute allowedRoles={['TECNICO']} />,
+            children: [
+              {
+                path: '/requests/available',
+                element: <AvailableRequestsPage />,
+              },
+            ],
+          },
+          {
             path: '/requests/:id',
             element: <RequestDetailPage />,
           },
@@ -80,6 +91,10 @@ export const router = createBrowserRouter([
               {
                 path: '/categories',
                 element: <CategoriesPage />,
+              },
+              {
+                path: '/settings',
+                element: <SettingsPage />,
               },
             ],
           },

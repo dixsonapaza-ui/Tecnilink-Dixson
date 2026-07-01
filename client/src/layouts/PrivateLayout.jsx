@@ -12,10 +12,13 @@ import {
   UserCircle,
   Users,
   Edit,
+  Briefcase,
+  Sliders,
 } from 'lucide-react';
 import { toast } from 'sonner';
 
 import { Button } from '../components/ui/button.jsx';
+import { NotificationBell } from '../components/NotificationBell.jsx';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -45,8 +48,14 @@ export const PrivateLayout = () => {
     ...(user?.role === 'CLIENTE'
       ? [{ to: '/requests/new', label: 'Nueva solicitud', icon: PlusCircle }]
       : []),
+    ...(user?.role === 'TECNICO'
+      ? [{ to: '/requests/available', label: 'Bolsa de trabajo', icon: Briefcase }]
+      : []),
     ...(user?.role === 'ADMIN' || user?.role === 'SUPER_ADMIN'
-      ? [{ to: '/categories', label: 'Categorias', icon: FolderTree }]
+      ? [
+          { to: '/categories', label: 'Categorias', icon: FolderTree },
+          { to: '/settings', label: 'Configuración', icon: Sliders },
+        ]
       : []),
     ...(user?.role === 'SUPER_ADMIN'
       ? [
@@ -72,7 +81,7 @@ export const PrivateLayout = () => {
               {navItems.map((item) => {
                 const Icon = item.icon;
                 const isActive = item.to === '/requests'
-                  ? (currentPath === '/requests' || (currentPath.startsWith('/requests/') && currentPath !== '/requests/new'))
+                  ? (currentPath === '/requests' || (currentPath.startsWith('/requests/') && currentPath !== '/requests/new' && currentPath !== '/requests/available'))
                   : currentPath === item.to;
                 return (
                   <Link key={item.to} to={item.to} className={navLinkClass(isActive)}>
@@ -83,7 +92,8 @@ export const PrivateLayout = () => {
               })}
             </div>
           </div>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-3">
+            <NotificationBell />
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button type="button" variant="outline" className="flex items-center gap-2">

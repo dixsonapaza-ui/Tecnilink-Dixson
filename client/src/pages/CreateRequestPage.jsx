@@ -113,25 +113,33 @@ export const CreateRequestPage = () => {
           <form onSubmit={handleSubmit}>
         <ErrorMessage message={error} />
         <label className="mt-5 block text-sm font-medium text-slate-700">
-          Titulo
+          <div className="flex justify-between">
+            <span>Título</span>
+            <span className="text-xs text-slate-400">{form.title.length} / 120</span>
+          </div>
           <Input
             className={`mt-2 transition-colors duration-300 ${isSymbolAttempted ? '!border-red-500 bg-red-50 ring-2 ring-red-500/20' : ''}`}
             name="title"
             value={form.title}
             onChange={handleTitleChange}
+            maxLength={120}
             required
           />
           {isSymbolAttempted && (
-            <p className="mt-1 text-xs font-normal text-red-500">Solo se permiten letras y numeros.</p>
+            <p className="mt-1 text-xs font-normal text-red-500">Solo se permiten letras y números.</p>
           )}
         </label>
         <label className="mt-4 block text-sm font-medium text-slate-700">
-          Descripcion
+          <div className="flex justify-between">
+            <span>Descripción</span>
+            <span className="text-xs text-slate-400">{form.description.length} / 1000</span>
+          </div>
           <Textarea
             className="mt-2 min-h-36"
             name="description"
             value={form.description}
             onChange={handleChange}
+            maxLength={1000}
             required
           />
         </label>

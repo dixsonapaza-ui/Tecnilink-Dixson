@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Link, Navigate, useNavigate } from 'react-router-dom';
+import { Link, Navigate, useNavigate, useSearchParams } from 'react-router-dom';
 import { Eye, EyeOff, UserPlus, Mail, Lock, User, Zap, CreditCard } from 'lucide-react';
 import { toast } from 'sonner';
 import { motion } from 'framer-motion';
@@ -52,14 +52,40 @@ const cardVariants = {
 export const RegisterPage = () => {
   const { isAuthenticated, register, loginGoogle } = useAuth();
   const navigate = useNavigate();
-  const [form, setForm] = useState({ name: '', email: '', password: '', dni: '' });
-  const [selectedRole, setSelectedRole] = useState('CLIENTE');
+  const [searchParams] = useSearchParams();
+  const roleParam = searchParams.get('role');
+  const [selectedRole, setSelectedRole] = useState(roleParam === 'TECNICO' ? 'TECNICO' : 'CLIENTE');
+
+  useEffect(() => {
+    if (roleParam === 'TECNICO') {
+      setSelectedRole('TECNICO');
+    } else if (roleParam === 'CLIENTE') {
+      setSelectedRole('CLIENTE');
+    }
+  }, [roleParam]);
+
   const isTechnician = selectedRole === 'TECNICO';
+  const [form, setForm] = useState({ name: '', email: '', password: '', dni: '' });
   const [error, setError] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSpaceAttempted, setIsSpaceAttempted] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [isGoogleModalOpen, setIsGoogleModalOpen] = useState(false);
+
+  const handleRoleChange = (role) => {
+    setSelectedRole(role);
+    if (role === 'TECNICO') {
+      toast.info('Modo Técnico Seleccionado', {
+        description: 'Las cuentas de técnico requieren DNI oficial para la verificación automática con RENIEC. El registro rápido con Google no está disponible.',
+        duration: 6000,
+      });
+    } else {
+      toast.success('Modo Cliente Seleccionado', {
+        description: 'Puedes completar el formulario o registrarte rápidamente usando tu cuenta de Google.',
+        duration: 4000,
+      });
+    }
+  };
 
   const handleGoogleAuthenticate = async (credential) => {
     setError('');
@@ -234,7 +260,7 @@ export const RegisterPage = () => {
                 <div className="flex gap-2">
                   <button
                     type="button"
-                    onClick={() => setSelectedRole('CLIENTE')}
+                    onClick={() => handleRoleChange('CLIENTE')}
                     className={`flex-1 rounded-xl border px-4 py-2.5 text-sm font-semibold transition-all duration-200 ${
                       !isTechnician
                         ? 'border-slate-950 bg-slate-950 text-white shadow-lg shadow-slate-950/20'
@@ -245,7 +271,7 @@ export const RegisterPage = () => {
                   </button>
                   <button
                     type="button"
-                    onClick={() => setSelectedRole('TECNICO')}
+                    onClick={() => handleRoleChange('TECNICO')}
                     className={`flex-1 rounded-xl border px-4 py-2.5 text-sm font-semibold transition-all duration-200 ${
                       isTechnician
                         ? 'border-slate-950 bg-slate-950 text-white shadow-lg shadow-slate-950/20'
@@ -412,7 +438,15 @@ export const RegisterPage = () => {
                   <span className="text-[10px]">👤</span>
                 </div>
                 <span className="text-xs text-slate-500">
-                  El registro publico crea cuentas con rol <span className="font-semibold text-slate-700">CLIENTE</span>
+                  {isTechnician ? (
+                    <>
+                      El registro creará una cuenta con rol <span className="font-semibold text-slate-700">TÉCNICO</span> (sujeta a verificación)
+                    </>
+                  ) : (
+                    <>
+                      El registro público crea cuentas con rol <span className="font-semibold text-slate-700">CLIENTE</span>
+                    </>
+                  )}
                 </span>
               </motion.div>
 
@@ -443,49 +477,62 @@ export const RegisterPage = () => {
                 </motion.button>
               </motion.div>
 
-              {/* Divider */}
-              <motion.div
-                variants={itemVariants}
-                className="my-6 flex items-center gap-3"
-              >
-                <div className="h-px flex-1 bg-slate-200" />
-                <span className="text-xs text-slate-400">o</span>
-                <div className="h-px flex-1 bg-slate-200" />
-              </motion.div>
+              {/* Divider and Google Button or Info Alert */}
+              {!isTechnician ? (
+                <>
+                  {/* Divider */}
+                  <motion.div
+                    variants={itemVariants}
+                    className="my-6 flex items-center gap-3"
+                  >
+                    <div className="h-px flex-1 bg-slate-200" />
+                    <span className="text-xs text-slate-400">o</span>
+                    <div className="h-px flex-1 bg-slate-200" />
+                  </motion.div>
 
-              {/* Google Button */}
-              <motion.div variants={itemVariants} className="mt-2 mb-6 flex flex-col items-center gap-3">
-                <div className="w-full flex justify-center">
-                  <GoogleLogin
-                    onSuccess={(response) => handleGoogleAuthenticate(response.credential)}
-                    onError={() => toast.error('Error al iniciar sesión con Google')}
-                    theme="outline"
-                    size="large"
-                    text="continue_with"
-                    shape="pill"
-                    width="380"
-                  />
-                </div>
-                <button
-                  type="button"
-                  onClick={() => setIsGoogleModalOpen(true)}
-                  className="text-xs text-slate-400 hover:text-slate-600 transition-colors underline"
+                  {/* Google Button */}
+                  <motion.div variants={itemVariants} className="mt-2 mb-6 flex flex-col items-center gap-3">
+                    <div className="w-full flex justify-center">
+                      <GoogleLogin
+                        onSuccess={(response) => handleGoogleAuthenticate(response.credential)}
+                        onError={() => toast.error('Error al iniciar sesión con Google')}
+                        theme="outline"
+                        size="large"
+                        text="continue_with"
+                        shape="pill"
+                        width="380"
+                      />
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => setIsGoogleModalOpen(true)}
+                      className="text-xs text-slate-400 hover:text-slate-600 transition-colors underline"
+                    >
+                      ¿Problemas con Google? Usar simulador local
+                    </button>
+                  </motion.div>
+                </>
+              ) : (
+                <motion.div
+                  variants={itemVariants}
+                  className="mt-6 mb-6 rounded-xl border border-blue-100 bg-blue-50/50 p-4 text-center text-xs leading-relaxed text-blue-700 shadow-sm"
                 >
-                  ¿Problemas con Google? Usar simulador local
-                </button>
-              </motion.div>
+                  <p className="font-semibold text-blue-800 mb-1">Registro con Google deshabilitado para técnicos</p>
+                  Las cuentas de técnico requieren ingresar su DNI para la validación oficial con RENIEC. Por favor, complete el formulario superior.
+                </motion.div>
+              )}
 
               {/* Login Link */}
               <motion.p
                 variants={itemVariants}
                 className="text-center text-sm text-slate-500"
               >
-                Ya tienes cuenta?{' '}
+                ¿Ya tienes cuenta?{' '}
                 <Link
                   className="font-semibold text-slate-950 underline-offset-4 transition-colors hover:underline"
-                  to="/login"
+                  to={selectedRole === 'TECNICO' ? '/login?role=TECNICO' : '/login?role=CLIENTE'}
                 >
-                  Inicia sesion
+                  Inicia sesión
                 </Link>
               </motion.p>
             </form>

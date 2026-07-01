@@ -11,6 +11,9 @@ import {
   storeRequest,
   storeRequestComment,
   listTechnicians,
+  indexAvailableRequests,
+  takeRequestJob,
+  releaseRequestJob,
 } from '../controllers/request.controller.js';
 import {
   assignRequestSchema,
@@ -43,6 +46,11 @@ requestRoutes.post(
   validateRequest(createRequestSchema),
   asyncHandler(storeRequest),
 );
+requestRoutes.get(
+  '/available',
+  authorizeRoles('TECNICO'),
+  asyncHandler(indexAvailableRequests),
+);
 requestRoutes.get('/:id', validateRequest(requestIdParamSchema), asyncHandler(showRequest));
 requestRoutes.put('/:id', validateRequest(updateRequestSchema), asyncHandler(editRequest));
 requestRoutes.patch(
@@ -56,6 +64,18 @@ requestRoutes.patch(
   authorizeRoles('TECNICO'),
   validateRequest(updateRequestStatusSchema),
   asyncHandler(changeRequestStatus),
+);
+requestRoutes.post(
+  '/:id/take',
+  authorizeRoles('TECNICO'),
+  validateRequest(requestIdParamSchema),
+  asyncHandler(takeRequestJob),
+);
+requestRoutes.post(
+  '/:id/release',
+  authorizeRoles('TECNICO'),
+  validateRequest(requestIdParamSchema),
+  asyncHandler(releaseRequestJob),
 );
 requestRoutes.delete('/:id', validateRequest(requestIdParamSchema), asyncHandler(removeRequest));
 requestRoutes.get(

@@ -23,6 +23,7 @@ import {
   getRequestComments,
   updateRequestStatus,
   getTechniciansList,
+  releaseRequest,
 } from '../services/api.js';
 import { getApiErrorMessage } from '../utils/api-error.js';
 import { sanitizeMultilineText, sanitizeText } from '../utils/input-sanitizer.js';
@@ -99,6 +100,10 @@ export const RequestDetailPage = () => {
     try {
       await assignRequest(id, { technicianId: sanitizedTechnicianId });
       setAssigningStatus('success');
+      toast.success('Técnico asignado correctamente', {
+        description: 'El técnico ha sido asignado al caso con éxito y comenzará a atenderlo.',
+        duration: 4000,
+      });
       
       setTimeout(async () => {
         setSearchFilter('');
@@ -120,7 +125,10 @@ export const RequestDetailPage = () => {
 
     try {
       await updateRequestStatus(id, { status });
-      toast.success('Estado actualizado');
+      toast.success('Estado actualizado correctamente', {
+        description: `El nuevo estado de la solicitud es: ${status === 'EN_PROCESO' ? 'En proceso' : 'Atendida'}.`,
+        duration: 4000,
+      });
       await loadRequest();
     } catch (apiError) {
       const message = getApiErrorMessage(apiError, 'No se pudo actualizar el estado.');
@@ -134,7 +142,10 @@ export const RequestDetailPage = () => {
 
     try {
       await cancelRequest(id);
-      toast.success('Solicitud cancelada');
+      toast.success('Solicitud cancelada con éxito', {
+        description: 'La solicitud técnica ha cambiado su estado a CANCELADA.',
+        duration: 4000,
+      });
       await loadRequest();
     } catch (apiError) {
       const message = getApiErrorMessage(apiError, 'No se pudo cancelar la solicitud.');
@@ -156,7 +167,10 @@ export const RequestDetailPage = () => {
     try {
       await createRequestComment(id, { content: sanitizedContent });
       setCommentContent('');
-      toast.success('Comentario agregado');
+      toast.success('Comentario agregado con éxito', {
+        description: 'Tu comentario ha sido publicado en el hilo de seguimiento.',
+        duration: 4000,
+      });
       await loadComments(1);
     } catch (apiError) {
       const message = getApiErrorMessage(apiError, 'No se pudo agregar el comentario.');
@@ -309,27 +323,62 @@ export const RequestDetailPage = () => {
           )}
 
           {canUpdateStatus && (
-            <Card>
-              <CardHeader>
-                <CardTitle>Actualizar estado</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <form onSubmit={handleStatusUpdate}>
-                  <select
-                    className="h-10 w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm"
-                    value={status}
-                    onChange={(event) => setStatus(event.target.value)}
-                  >
-                    <option value="EN_PROCESO">En proceso</option>
-                    <option value="ATENDIDA">Atendida</option>
-                  </select>
-                  <Button type="submit" className="mt-4">
-                    <Save className="h-4 w-4" />
-                    Guardar estado
-                  </Button>
-                </form>
-              </CardContent>
-            </Card>
+            <div className="space-y-4">
+              <Card>
+                <CardHeader>
+                  <CardTitle>Actualizar estado</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <form onSubmit={handleStatusUpdate}>
+                    <select
+                      className="h-10 w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm"
+                      value={status}
+                      onChange={(event) => setStatus(event.target.value)}
+                    >
+                      <option value="EN_PROCESO">En proceso</option>
+                      <option value="ATENDIDA">Atendida</option>
+                    </select>
+                    <Button type="submit" className="mt-4 w-full">
+                      <Save className="h-4 w-4" />
+                      Guardar estado
+                    </Button>
+                  </form>
+                </CardContent>
+              </Card>
+
+              {request.status === 'EN_PROCESO' && (
+                <Card className="border-rose-100 dark:border-rose-950">
+                  <CardHeader>
+                    <CardTitle className="text-rose-900 dark:text-rose-400">Liberar Trabajo</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <p className="text-xs text-slate-500 mb-4 leading-relaxed">
+                      Si tienes alguna emergencia o no puedes completar esta solicitud, puedes devolverla a la bolsa de trabajo para que otro técnico pueda tomarla.
+                    </p>
+                    <ConfirmDialog
+                      title="¿Liberar este trabajo?"
+                      description="Esta solicitud técnica volverá a estar disponible para todos los técnicos de tu especialidad."
+                      confirmLabel="Sí, liberar trabajo"
+                      isDanger
+                      onConfirm={async () => {
+                        try {
+                          await releaseRequest(request.id);
+                          toast.success('Trabajo liberado y devuelto a la bolsa');
+                          await loadRequest();
+                        } catch (err) {
+                          toast.error(getApiErrorMessage(err, 'No se pudo liberar el trabajo.'));
+                        }
+                      }}
+                    >
+                      <Button variant="dangerOutline" className="w-full">
+                        <XCircle className="h-4 w-4" />
+                        Liberar Solicitud
+                      </Button>
+                    </ConfirmDialog>
+                  </CardContent>
+                </Card>
+              )}
+            </div>
           )}
         </aside>
       </div>
@@ -340,11 +389,16 @@ export const RequestDetailPage = () => {
         </CardHeader>
         <CardContent>
           <form onSubmit={handleComment}>
+            <div className="flex justify-between items-center mb-2">
+              <span className="text-xs font-medium text-slate-500">Nuevo Comentario</span>
+              <span className="text-xs text-slate-400">{commentContent.length} / 1000</span>
+            </div>
             <Textarea
               className="min-h-24"
               value={commentContent}
               onChange={(event) => setCommentContent(event.target.value)}
               placeholder="Escribe un comentario..."
+              maxLength={1000}
               required
             />
             <Button type="submit" className="mt-3">

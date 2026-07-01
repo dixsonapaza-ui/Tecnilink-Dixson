@@ -65,17 +65,60 @@ export const getProfileById = async (userId) => {
 export const updateProfileById = async (userId, userRole, data) => {
   let updateData = {};
 
+  const validatePhone = (phone) => {
+    if (phone) {
+      const cleanPhone = String(phone).trim();
+      const phoneRegex = /^\+?[0-9\s\-]{9,15}$/;
+      if (!phoneRegex.test(cleanPhone)) {
+        throw new AppError('El telefono debe tener entre 9 y 15 digitos (se permiten espacios, guiones y + al inicio).', 400);
+      }
+      return cleanPhone;
+    }
+    return null;
+  };
+
+  const validateBio = (bio) => {
+    if (bio) {
+      const cleanBio = String(bio).trim();
+      if (cleanBio.length > 500) {
+        throw new AppError('La biografia no debe superar los 500 caracteres.', 400);
+      }
+      return cleanBio;
+    }
+    return null;
+  };
+
   if (userRole === 'TECNICO') {
     // Technicians cannot edit 'name' as it's official RENIEC data.
     const { phone, bio, specialty, experienceYears, serviceArea } = data;
     
-    if (phone !== undefined) updateData.phone = phone ? String(phone).trim() : null;
-    if (bio !== undefined) updateData.bio = bio ? String(bio).trim() : null;
-    if (specialty !== undefined) updateData.specialty = specialty ? String(specialty).trim() : null;
-    if (experienceYears !== undefined) {
-      updateData.experienceYears = experienceYears !== null && experienceYears !== '' ? Number(experienceYears) : null;
+    if (phone !== undefined) updateData.phone = validatePhone(phone);
+    if (bio !== undefined) updateData.bio = validateBio(bio);
+    if (specialty !== undefined) {
+      const cleanSpecialty = specialty ? String(specialty).trim() : '';
+      if (cleanSpecialty.length > 100) {
+        throw new AppError('La especialidad no debe superar los 100 caracteres.', 400);
+      }
+      updateData.specialty = cleanSpecialty || null;
     }
-    if (serviceArea !== undefined) updateData.serviceArea = serviceArea ? String(serviceArea).trim() : null;
+    if (experienceYears !== undefined) {
+      if (experienceYears !== null && experienceYears !== '') {
+        const years = Number(experienceYears);
+        if (isNaN(years) || years < 0 || years > 50) {
+          throw new AppError('Los anos de experiencia deben estar entre 0 y 50.', 400);
+        }
+        updateData.experienceYears = years;
+      } else {
+        updateData.experienceYears = null;
+      }
+    }
+    if (serviceArea !== undefined) {
+      const cleanArea = serviceArea ? String(serviceArea).trim() : '';
+      if (cleanArea.length > 150) {
+        throw new AppError('La zona de cobertura no debe superar los 150 caracteres.', 400);
+      }
+      updateData.serviceArea = cleanArea || null;
+    }
   } else {
     // CLIENTE, ADMIN, SUPER_ADMIN
     const { name, phone, bio } = data;
@@ -85,10 +128,13 @@ export const updateProfileById = async (userId, userRole, data) => {
       if (!trimmedName || trimmedName.length < 2) {
         throw new AppError('El nombre debe tener al menos 2 caracteres', 400);
       }
+      if (trimmedName.length > 100) {
+        throw new AppError('El nombre no debe superar los 100 caracteres.', 400);
+      }
       updateData.name = trimmedName;
     }
-    if (phone !== undefined) updateData.phone = phone ? String(phone).trim() : null;
-    if (bio !== undefined) updateData.bio = bio ? String(bio).trim() : null;
+    if (phone !== undefined) updateData.phone = validatePhone(phone);
+    if (bio !== undefined) updateData.bio = validateBio(bio);
   }
 
   const updatedUser = await prisma.user.update({
